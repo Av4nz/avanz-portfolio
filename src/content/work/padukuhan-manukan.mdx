@@ -8,7 +8,7 @@ period: "2025"
 role: "Front-End Developer"
 duration: "3 months (September — December 2025)"
 team: "Team project for the KKN community service programme. I owned the front end."
-stack: ["Next.js", "JavaScript", "Tailwind CSS", "Netlify CMS", "Netlify"]
+stack: ["Next.js", "JavaScript", "Tailwind CSS", "Decap CMS", "Chart.js", "Netlify"]
 liveUrl: "https://padukuhan-manukan.netlify.app/"
 repoUrl: "https://github.com/Av4nz/padukuhan-manukan-profile"
 cover: "./padukuhan-manukan-cover.png"
@@ -64,10 +64,11 @@ The obvious option was a traditional CMS with a database. I rejected it because
 it means a server to maintain, a database that can fall over, and eventually a
 bill or an upgrade nobody in the village is equipped to handle.
 
-I used **Netlify CMS** instead. Content lives as files in the repository, edited
-through a friendly admin interface. Officials log in, write a post, upload a
-photo and hit publish. Behind the scenes that is a git commit, and Netlify
-rebuilds the site automatically.
+I used **Decap CMS** (formerly Netlify CMS) instead. Content lives as files in
+the repository, edited through a friendly admin interface backed by
+`git-gateway`. Officials log in, write a post, upload a photo and hit publish.
+Behind the scenes that is a git commit, and Netlify rebuilds the site
+automatically.
 
 The practical consequences:
 
