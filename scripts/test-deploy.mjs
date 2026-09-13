@@ -13,7 +13,7 @@
  * `npm test`. Run it before the first deploy and after dependency changes.
  */
 import { execSync } from "node:child_process";
-import { rmSync, existsSync } from "node:fs";
+import { rmSync, existsSync, readdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { tmpdir } from "node:os";
@@ -80,6 +80,17 @@ try {
 
     if (built) {
       console.log("\nExpected output exists");
+      // Derive case-study routes from the clone's content directory. Hardcoding
+      // a slug here meant this script kept asking for a deleted placeholder
+      // long after the real case studies replaced it.
+      const cloneWork = join(tmp, "src/content/work");
+      const slugs = existsSync(cloneWork)
+        ? readdirSync(cloneWork)
+            .filter((f) => f.endsWith(".mdx"))
+            .map((f) => f.replace(/\.mdx$/, ""))
+        : [];
+      check(`clone contains ${slugs.length} case studies`, slugs.length >= 1);
+
       for (const f of [
         "dist/index.html",
         "dist/404.html",
@@ -88,7 +99,7 @@ try {
         "dist/og.png",
         "dist/favicon.ico",
         "dist/apple-touch-icon.png",
-        "dist/work/placeholder-one-dashboard/index.html",
+        ...slugs.map((s) => `dist/work/${s}/index.html`),
       ]) {
         check(f, existsSync(join(tmp, f)));
       }
