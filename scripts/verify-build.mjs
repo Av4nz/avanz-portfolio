@@ -232,6 +232,64 @@ console.log("\nDomain has a single source of truth");
   );
 }
 
+console.log("\nBuild-only tooling stays out of the bundle");
+{
+  // satori and its transitive fflate dependency have a known advisory. They are
+  // devDependencies used by scripts/generate-og.mjs at author time, so they must
+  // never appear in shipped output. Assert that rather than trusting it.
+  const shipped = allFiles.filter(
+    (f) => f.endsWith(".js") || f.endsWith(".css") || f.endsWith(".html"),
+  );
+  const leaked = shipped.filter((f) => /fflate|\bsatori\b/i.test(readFileSync(f, "utf8")));
+  check(
+    "no build-only libraries in shipped JS/CSS/HTML",
+    leaked.length === 0,
+    leaked.map((f) => f.replace(dist, "")).join(", "),
+  );
+
+  // Every runtime dependency should be one Astro actually needs. sharp, satori
+  // and wawoff2 are author-time tools and belong in devDependencies.
+  const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
+  const runtime = Object.keys(pkg.dependencies ?? {});
+  const authorOnly = ["sharp", "satori", "wawoff2", "@fontsource/inter-tight", "@fontsource/jetbrains-mono"];
+  const misplaced = runtime.filter((d) => authorOnly.includes(d));
+  check(
+    "author-time tools are devDependencies",
+    misplaced.length === 0,
+    `in dependencies: ${misplaced.join(", ")}`,
+  );
+
+  // Anything a script imports must be declared, not inherited transitively.
+  const scriptFiles = walk(join(root, "scripts"));
+  const imported = new Set();
+  for (const f of scriptFiles) {
+    const body = readFileSync(f, "utf8")
+      // Strip comments first: prose like `from "pkg"` inside a doc block is not
+      // an import, and matching it produces phantom dependencies.
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/^\s*\/\/.*$/gm, "");
+    // Only real ES import statements, anchored to the start of a line.
+    for (const m of body.matchAll(/^\s*import\s+[^;]*?\bfrom\s+["']([^"']+)["']/gm)) {
+      const spec = m[1];
+      if (spec.startsWith("node:") || spec.startsWith(".") || spec.startsWith("/")) continue;
+      // Scoped packages keep two segments, others keep one.
+      imported.add(
+        spec.startsWith("@") ? spec.split("/").slice(0, 2).join("/") : spec.split("/")[0],
+      );
+    }
+  }
+  const declared = new Set([
+    ...Object.keys(pkg.dependencies ?? {}),
+    ...Object.keys(pkg.devDependencies ?? {}),
+  ]);
+  const undeclared = [...imported].filter((d) => !declared.has(d));
+  check(
+    `all ${imported.size} script imports are declared (${[...imported].sort().join(", ")})`,
+    undeclared.length === 0,
+    `undeclared: ${undeclared.join(", ")}`,
+  );
+}
+
 console.log("\nContent placeholders");
 const placeholderCount = htmlFiles.filter((f) =>
   readFileSync(f, "utf8").includes("Placeholder content"),

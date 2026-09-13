@@ -17,7 +17,8 @@
     "audit": "node scripts/audit.mjs",
     "icons": "node scripts/generate-icons.mjs",
     "test:content": "node scripts/test-content-paths.mjs",
-    "test": "node scripts/test-all.mjs"
+    "test": "node scripts/test-all.mjs",
+    "test:deploy": "node scripts/test-deploy.mjs"
   },
   "dependencies": {
     "@astrojs/markdown-satteri": "^0.4.1",
@@ -38,6 +39,7 @@
     "@fontsource/inter-tight": "^5.3.0",
     "@fontsource/jetbrains-mono": "^5.3.0",
     "satori": "^0.33.4",
+    "sharp": "^0.35.4",
     "typescript": "^6.0.3",
     "wawoff2": "^2.0.1"
   }

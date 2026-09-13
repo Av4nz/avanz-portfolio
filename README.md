@@ -24,6 +24,7 @@ npm run dev          # http://localhost:4321
 | `npm run verify` | Structural checks on `dist/` (links, meta tags, perf budgets) |
 | `npm run audit` | Runtime checks in headless Chrome (overflow, contrast, tap targets) |
 | `npm run test:content` | Builds a throwaway case study to exercise cover images and published state |
+| `npm run test:deploy` | Clones, `npm ci`, builds and verifies, exactly as a deploy host would |
 | `npm run shots` | Screenshots to `.screenshots/` across viewports and themes |
 | `npm run og` | Regenerate `public/og.png` (the social share image) |
 | `npm run icons` | Regenerate `favicon.ico` and `apple-touch-icon.png` from `favicon.svg` |
@@ -173,6 +174,7 @@ The site currently passes, with checks enforced by `npm run verify` and
 - One `<h1>` per page, no skipped heading levels
 - Every internal link resolves, with no exemptions
 - The domain is defined once; no file hardcodes it
+- Build-only tooling never reaches the browser, and every script import is declared
 - Visible focus ring on all 18 focusable elements
 - Skip link is focusable, becomes visible, and its target exists
 - Under `prefers-reduced-motion`, content is visible with transitions disabled
@@ -207,6 +209,11 @@ Before going live:
 That is the whole list. `robots.txt`, the sitemap, canonical URLs, OG tags and
 JSON-LD all derive from that one `url` field, and `npm run verify` fails if any
 file hardcodes the domain instead.
+
+`npm run test:deploy` simulates the host: it clones only the tracked files,
+installs strictly from the lockfile and builds. That catches the awkward class
+of bug where the site builds on your machine only because of a file you never
+committed. It already passes, so the first deploy should be uneventful.
 
 ---
 

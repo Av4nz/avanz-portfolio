@@ -15,6 +15,10 @@ npm test           # everything: build, content paths, structure, runtime a11y
 `npm run build`, `npm run test:content`, `npm run verify` and `npm run audit`;
 the last two need a server already running.
 
+`npm run test:deploy` is separate and slower: it clones the tracked files,
+runs `npm ci` and builds, reproducing what Vercel or Cloudflare Pages does.
+Run it after touching dependencies or generated assets in `public/`.
+
 `npm run audit` covers what static analysis cannot: horizontal overflow at four
 widths, per-node WCAG AA contrast in both themes, 24px tap targets, heading
 order, focus rings, reduced-motion behaviour and the theme toggle.
