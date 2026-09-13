@@ -115,7 +115,14 @@ const personSchema = {
 
     <Header />
 
-    <main id="main">
+    {/*
+      tabindex="-1" makes <main> a valid focus target. Without it, following
+      the skip link updates the URL hash but focus falls back to <body>, so a
+      screen-reader user is dropped nowhere and a keyboard user's next Tab
+      starts from the top of the page again. -1 keeps it out of the tab order
+      while still allowing programmatic focus.
+    */}
+    <main id="main" tabindex="-1" class="outline-none">
       <slot />
     </main>
 

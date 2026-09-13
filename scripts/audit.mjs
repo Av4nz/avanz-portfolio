@@ -370,6 +370,82 @@ check(
 );
 check("skip link target #main exists", skipReport.targetExists === true);
 
+console.log("\n=== Keyboard navigation ===");
+// Beyond "a focus ring exists": drive real key events through the input
+// pipeline and confirm the skip link does its job. An earlier version passed
+// the "skip link exists" check while focus actually fell back to <body>,
+// which is the bug this section is here to catch.
+{
+  const press = async (key) => {
+    const vk = key === "Tab" ? 9 : key === "Enter" ? 13 : 0;
+    await call("Input.dispatchKeyEvent", {
+      type: "rawKeyDown",
+      key,
+      code: key,
+      windowsVirtualKeyCode: vk,
+    });
+    await call("Input.dispatchKeyEvent", {
+      type: "keyUp",
+      key,
+      code: key,
+      windowsVirtualKeyCode: vk,
+    });
+    await sleep(40);
+  };
+
+  for (const page of pages) {
+    await goto(BASE + page.url, 1440, 900);
+
+    await press("Tab");
+    const firstStop = await evaluate(
+      `document.activeElement ? (document.activeElement.getAttribute("href") || "") : ""`,
+    );
+    check(`${page.label}: first Tab reaches the skip link`, firstStop === "#main", firstStop);
+
+    await press("Enter");
+    await sleep(150);
+    const landed = await evaluate(`(() => {
+      const a = document.activeElement;
+      const main = document.getElementById("main");
+      return {
+        hash: location.hash,
+        inMain: !!(a && main && (a === main || main.contains(a))),
+        tag: a ? a.tagName.toLowerCase() : "none",
+      };
+    })()`);
+    check(`${page.label}: skip sets the #main hash`, landed.hash === "#main", landed.hash);
+    check(
+      `${page.label}: focus actually lands in <main>`,
+      landed.inMain,
+      `focus is on <${landed.tag}>`,
+    );
+
+    // main must be focusable but must not join the tab order.
+    const mainAttrs = await evaluate(`(() => {
+      const m = document.getElementById("main");
+      return { tabindex: m ? m.getAttribute("tabindex") : null };
+    })()`);
+    check(`${page.label}: <main> is programmatically focusable`, mainAttrs.tabindex === "-1", String(mainAttrs.tabindex));
+  }
+
+  // No focus trap: tabbing must eventually reach the footer.
+  await goto(BASE + "/", 1440, 900);
+  let reachedFooter = false;
+  for (let i = 0; i < 60; i++) {
+    await press("Tab");
+    const inFooter = await evaluate(`(() => {
+      const a = document.activeElement;
+      const f = document.querySelector("footer");
+      return !!(f && a && f.contains(a));
+    })()`);
+    if (inFooter) {
+      reachedFooter = true;
+      break;
+    }
+  }
+  check("no focus trap: tabbing reaches the footer", reachedFooter);
+}
+
 console.log("\n=== Reduced motion ===");
 // With prefers-reduced-motion: reduce, content must be visible immediately
 // rather than waiting on a transition, and transitions must be neutralised.

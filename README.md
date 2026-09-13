@@ -179,7 +179,8 @@ The site currently passes, with checks enforced by `npm run verify` and
 - Build-only tooling never reaches the browser, and every script import is declared
 - The tooling runs on Windows, macOS and Linux; CI proves it on Ubuntu
 - Visible focus ring on all 18 focusable elements
-- Skip link is focusable, becomes visible, and its target exists
+- Skip link is focusable, becomes visible, and genuinely moves focus into `<main>`
+- No focus trap: tabbing always reaches the footer
 - Under `prefers-reduced-motion`, content is visible with transitions disabled
 - Icons are yours, not the Astro scaffold's rocket
 - English-only copy
