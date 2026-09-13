@@ -107,16 +107,36 @@ const meta = [
 
     {/* Meta bar */}
     <div class="border-b border-line bg-surface-2/50">
-      <dl class="mx-auto grid max-w-content grid-cols-2 gap-y-6 px-gutter py-8 sm:grid-cols-4">
-        {
-          meta.map((item) => (
-            <div>
-              <dt class="label mb-2">{item.label}</dt>
-              <dd class="text-sm text-fg">{item.value}</dd>
-            </div>
-          ))
-        }
-      </dl>
+      <div class="mx-auto max-w-content px-gutter py-8">
+        <dl class="grid grid-cols-2 gap-y-6 sm:grid-cols-4">
+          {
+            meta.map((item) => (
+              <div>
+                <dt class="label mb-2">{item.label}</dt>
+                <dd class="text-sm text-fg">{item.value}</dd>
+              </div>
+            ))
+          }
+        </dl>
+
+        {/*
+          The stack is declared in frontmatter and shown on the landing card,
+          so it must appear here too. Its own row rather than a fifth column,
+          since the list length varies.
+        */}
+        <div class="mt-6 border-t border-line pt-6">
+          <h2 class="label mb-3">Stack</h2>
+          <ul class="flex flex-wrap gap-2">
+            {
+              d.stack.map((tech) => (
+                <li class="rounded-sm border border-line bg-surface px-2.5 py-1 font-mono text-xs text-fg-muted">
+                  {tech}
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </div>
     </div>
 
     {/* Cover */}

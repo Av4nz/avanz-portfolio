@@ -15,7 +15,8 @@
     "verify": "node scripts/verify-build.mjs",
     "shots": "node scripts/screenshots.mjs",
     "audit": "node scripts/audit.mjs",
-    "icons": "node scripts/generate-icons.mjs"
+    "icons": "node scripts/generate-icons.mjs",
+    "test:content": "node scripts/test-content-paths.mjs"
   },
   "dependencies": {
     "@astrojs/markdown-satteri": "^0.4.1",
