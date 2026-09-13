@@ -11,8 +11,12 @@
  * behaviour. Browser discovery and the CDP plumbing live in lib/browser.mjs.
  */
 import { setTimeout as sleep } from "node:timers/promises";
+import { readdirSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { launchBrowser, goto as navigate } from "./lib/browser.mjs";
 
+const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const BASE = process.env.BASE_URL ?? "http://localhost:4321";
 
 const { chromePath, call, evaluate, close } = await launchBrowser({
@@ -216,9 +220,25 @@ const HEADING_PROBE = `(() => {
   return { count: hs.length, h1: hs.filter((h) => h.level === 1).length, skips };
 })()`;
 
+/**
+ * Pages under test. Case-study routes are derived from the content directory,
+ * not hardcoded: an earlier version pointed at a deleted placeholder slug and
+ * silently audited a 404 page, which passes every check for the wrong reason.
+ */
+const workSlugs = readdirSync(resolve(root, "src/content/work"))
+  .filter((f) => f.endsWith(".mdx"))
+  .map((f) => f.replace(/\.mdx$/, ""))
+  .sort();
+
+if (workSlugs.length === 0) {
+  console.error("No case studies found in src/content/work.");
+  close();
+  process.exit(1);
+}
+
 const pages = [
   { label: "home", url: "/" },
-  { label: "case study", url: "/work/placeholder-one-dashboard/" },
+  ...workSlugs.map((slug) => ({ label: `case study (${slug})`, url: `/work/${slug}/` })),
   { label: "404", url: "/404" },
 ];
 
@@ -444,6 +464,33 @@ console.log("\n=== Keyboard navigation ===");
     }
   }
   check("no focus trap: tabbing reaches the footer", reachedFooter);
+}
+
+console.log("\n=== Images decode ===");
+// Screenshots proved unreliable here: a cover can appear blank in a headless
+// capture while loading perfectly in a real browser. Ask the browser directly
+// whether each image decoded, rather than trusting a pixel comparison.
+for (const page of pages) {
+  await goto(BASE + page.url, 1440, 900);
+  const imgs = await evaluate(`(() => {
+    return [...document.images].map((img) => ({
+      alt: (img.alt || "").slice(0, 40),
+      complete: img.complete,
+      naturalW: img.naturalWidth,
+      naturalH: img.naturalHeight,
+      hasAlt: img.hasAttribute("alt"),
+    }));
+  })()`);
+
+  const broken = imgs.filter((i) => !i.complete || i.naturalW === 0);
+  check(
+    `${page.label}: all ${imgs.length} image(s) decode`,
+    broken.length === 0,
+    broken.map((b) => `"${b.alt}" natural=${b.naturalW}x${b.naturalH}`).join(" | "),
+  );
+
+  const missingAlt = imgs.filter((i) => !i.hasAlt);
+  check(`${page.label}: every image has an alt attribute`, missingAlt.length === 0);
 }
 
 console.log("\n=== Reduced motion ===");

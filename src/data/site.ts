@@ -100,10 +100,10 @@ export const experience = [
       "Built and maintained production UI for an education technology product, working to real deadlines and review cycles rather than coursework ones.",
   },
   {
-    role: "B.Sc. Informatics",
-    company: "TODO: your university name",
-    period: "2022 — 2026",
+    role: "B.Sc. Information Technology",
+    company: "Universitas Negeri Yogyakarta",
+    period: "2022 — Present",
     description:
-      "Thesis: RicePredict, a hybrid Prophet and XGBoost system forecasting medium-grade rice prices for the Special Region of Yogyakarta.",
+      "Department of Electronics and Informatics Engineering Education, Faculty of Engineering. Thesis: RicePredict, a hybrid Prophet and XGBoost system forecasting medium-grade rice prices for the Special Region of Yogyakarta.",
   },
 ] as const;

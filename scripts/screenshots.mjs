@@ -64,7 +64,20 @@ try {
       expression: `document.querySelectorAll(".reveal").forEach((e) => e.classList.add("is-visible")); true`,
       returnByValue: true,
     });
-    await sleep(200);
+
+    // Wait for images to finish decoding. captureBeyondViewport paints the full
+    // page in one shot, so an image still in flight screenshots as a blank box
+    // even though it loads fine in a real browser.
+    await call("Runtime.evaluate", {
+      expression: `Promise.all(
+        [...document.images]
+          .filter((i) => !i.complete)
+          .map((i) => new Promise((res) => { i.onload = i.onerror = res; }))
+      ).then(() => true)`,
+      awaitPromise: true,
+      returnByValue: true,
+    });
+    await sleep(300);
 
     const { data } = await call("Page.captureScreenshot", {
       format: "png",

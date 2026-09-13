@@ -18,7 +18,8 @@
     "icons": "node scripts/generate-icons.mjs",
     "test:content": "node scripts/test-content-paths.mjs",
     "test": "node scripts/test-all.mjs",
-    "test:deploy": "node scripts/test-deploy.mjs"
+    "test:deploy": "node scripts/test-deploy.mjs",
+    "covers": "node scripts/capture-covers.mjs"
   },
   "dependencies": {
     "@astrojs/markdown-satteri": "^0.4.1",

@@ -245,4 +245,25 @@
       transform: none;
     }
   }
+
+  /* Shiki dual themes.
+     Shiki emits both themes as CSS variables and inline `color:` values for the
+     light one. Switching to the dark palette requires overriding those inline
+     styles, which is the one place !important is the correct tool. */
+  .dark .astro-code,
+  .dark .astro-code span {
+    color: var(--shiki-dark) !important;
+    background-color: var(--shiki-dark-bg) !important;
+    font-style: var(--shiki-dark-font-style) !important;
+    font-weight: var(--shiki-dark-font-weight) !important;
+    text-decoration: var(--shiki-dark-text-decoration) !important;
+  }
+
+  /* Code blocks must wrap rather than scroll: a long line is a horizontal
+     overflow bug on a narrow phone. */
+  .astro-code {
+    white-space: pre-wrap;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
 }
