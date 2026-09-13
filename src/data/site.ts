@@ -1,8 +1,6 @@
 /**
  * SINGLE SOURCE OF TRUTH for personal data.
  * Edit this file to update the whole site. Nothing else hardcodes your details.
- *
- * Anything marked TODO is placeholder content you should replace.
  */
 
 export const site = {
@@ -13,33 +11,36 @@ export const site = {
 
   /** One-line value proposition. Shown in the hero and as the meta description. */
   tagline:
-    "I build fast, accessible web interfaces with a focus on clean architecture and considered detail.",
+    "I build web interfaces that make complex data understandable, and I care about the parts users feel but rarely notice.",
 
-  /** Short bio for the About section. 3-4 sentences is the sweet spot. */
+  /** Short bio for the About section. */
   bio: [
-    "I'm a final-year Informatics student and front-end developer currently interning, where I ship production UI against real deadlines and real feedback.",
-    "My focus is the part of the front end that users feel but rarely notice: fast page loads, interfaces that work with a keyboard and a screen reader, and component APIs that the next developer can actually read.",
-    "I care about the boring parts being correct. Semantic markup, sensible state, no unnecessary JavaScript.",
+    "I'm a final-year Informatics student in Yogyakarta and a front-end developer, currently interning while I finish my thesis.",
+    "My work sits where the interface meets real complexity. My thesis, RicePredict, forecasts rice prices for my region and taught me that shipping a model is the easy half: the hard part is presenting a prediction honestly enough that someone can decide how much to trust it.",
+    "I care about the boring things being correct. Semantic markup, fast loads on mid-range phones, interfaces that work with a keyboard, and handovers where the next person can actually take over.",
   ],
 
-  location: "Indonesia",
+  location: "Yogyakarta, Indonesia",
   availability: "Open to internships, full-time and freelance work",
 
   // --- Deployment -----------------------------------------------------------
-  // TODO: replace with your real domain once you buy one. Used for canonical
-  // URLs, sitemap and social share images.
+  // TODO: replace with your real domain once you buy one. Everything else
+  // (robots.txt, sitemap, canonical URLs, OG image) derives from this value.
   url: "https://avanz.dev",
 
   // --- Contact --------------------------------------------------------------
-  // TODO: replace all placeholders below with your real handles.
-  email: "hello@avanz.dev",
+  email: "affanarfani4@gmail.com",
   socials: [
-    { label: "GitHub", href: "https://github.com/your-username", handle: "@your-username" },
-    { label: "LinkedIn", href: "https://linkedin.com/in/your-username", handle: "in/your-username" },
-    { label: "Email", href: "mailto:hello@avanz.dev", handle: "hello@avanz.dev" },
+    { label: "GitHub", href: "https://github.com/Av4nz", handle: "@Av4nz" },
+    {
+      label: "LinkedIn",
+      href: "https://www.linkedin.com/in/affan-arfani-arifin-930652282",
+      handle: "in/affan-arfani-arifin",
+    },
+    { label: "Email", href: "mailto:affanarfani4@gmail.com", handle: "affanarfani4@gmail.com" },
   ],
 
-  /** Put your real CV at /public/cv.pdf to activate this link. */
+  /** Put your CV at /public/cv.pdf to activate the CV links automatically. */
   cv: "/cv.pdf",
 } as const;
 
@@ -57,41 +58,52 @@ export const nav = [
 export const skillGroups = [
   {
     title: "Core",
-    items: ["HTML5", "CSS3", "JavaScript (ES2023+)", "TypeScript", "Responsive Design", "Web Accessibility"],
+    items: [
+      "HTML5",
+      "CSS3",
+      "JavaScript (ES2023+)",
+      "TypeScript",
+      "Responsive Design",
+      "Web Accessibility",
+    ],
   },
   {
     title: "Frameworks & Libraries",
-    items: ["React", "Astro", "Next.js", "Tailwind CSS", "Vite"],
+    items: ["React", "Next.js", "Vue", "Astro", "Tailwind CSS", "Recharts"],
+  },
+  {
+    title: "Back-End & Data",
+    items: ["FastAPI", "Python", "PostgreSQL", "REST APIs", "pandas", "scikit-learn"],
   },
   {
     title: "Tooling & Workflow",
-    items: ["Git & GitHub", "Figma to Code", "REST APIs", "Vercel", "Lighthouse & Web Vitals"],
+    items: ["Git & GitHub", "Figma to Code", "Vercel & Netlify", "Headless CMS", "Lighthouse"],
   },
 ] as const;
 
 /**
  * Experience timeline. Newest first.
- * TODO: replace with your real internship details.
  */
 export const experience = [
   {
-    role: "Front-End Developer Intern",
-    company: "TODO: Company Name",
-    period: "2026 — Present",
+    role: "Website Administrator",
+    company: "Gelanggang Inovasi dan Kreativitas (GIK) UGM",
+    period: "Jul 2026 — Dec 2026",
     description:
-      "TODO: One or two sentences. What do you actually build, and what changed because you were there? Lead with a number if you have one.",
+      "Maintaining and updating the web presence for UGM's innovation and creativity hub, keeping content current for a venue that runs a continuous programme of public events.",
   },
   {
-    role: "Freelance Web Developer",
-    company: "Self-employed",
-    period: "2025 — 2026",
+    role: "Front-End Developer Intern",
+    company: "PT Vortex Buana Edumedia",
+    period: "Nov 2025 — Feb 2026",
     description:
-      "TODO: Who were the clients, what did you deliver, and what was the outcome for them?",
+      "Built and maintained production UI for an education technology product, working to real deadlines and review cycles rather than coursework ones.",
   },
   {
     role: "B.Sc. Informatics",
-    company: "TODO: University Name",
+    company: "TODO: your university name",
     period: "2022 — 2026",
-    description: "TODO: Thesis topic, relevant coursework, or an organisation you were active in.",
+    description:
+      "Thesis: RicePredict, a hybrid Prophet and XGBoost system forecasting medium-grade rice prices for the Special Region of Yogyakarta.",
   },
 ] as const;

@@ -1,0 +1,130 @@
+---
+title: "Padukuhan Manukan Profile"
+summary: "An official village profile site for Padukuhan Manukan, built during community service so residents and officials could maintain their own content without a developer."
+order: 2
+featured: true
+draft: false
+period: "2025"
+role: "Front-End Developer"
+duration: "3 months (September — December 2025)"
+team: "Team project for the KKN community service programme. I owned the front end."
+stack: ["Next.js", "JavaScript", "Tailwind CSS", "Netlify CMS", "Netlify"]
+liveUrl: "https://padukuhan-manukan.netlify.app/"
+repoUrl: "https://github.com/Av4nz/padukuhan-manukan-profile"
+outcomes:
+  - "Handed over to village officials who publish activity posts themselves, with no developer involved"
+  - "Five content sections covering profile, infographics, institutions, activities and facilities"
+  - "Still in use after the KKN programme ended, which was the actual goal"
+---
+
+## Context
+
+Padukuhan Manukan is a hamlet in Condongcatur, Depok, Sleman, in the Special
+Region of Yogyakarta. This site was built as part of KKN, the community service
+programme Indonesian students complete before graduating.
+
+The brief from the hamlet head was specific: the village had no online presence,
+and its history and activities existed only as scattered documents and photos.
+She wanted an archive and a public identity, in her words a mirror of the
+hamlet's daily life.
+
+## The problem
+
+Most KKN websites die the moment the students leave.
+
+The pattern is familiar: a team builds something in a few weeks, hands over a
+URL, and the site freezes at whatever was true on handover day. Six months later
+the events page still advertises last year's Independence Day, which is worse
+than having no site at all.
+
+The real problem was not building a website. It was building one that **outlives
+the people who built it**. Nobody in the village writes code, and there would be
+no developer to call.
+
+## My role
+
+Team project, and I was the front-end developer. I built the interface: page
+structure, component architecture, responsive layout and the CMS integration
+that made handover possible. Other team members gathered content, photographed
+facilities and coordinated with village officials.
+
+I want to be precise about scope, since it is easy to overclaim on group work.
+I made 41 of the 42 commits in the repository, but the content that fills those
+pages came from the team.
+
+## Technical decisions
+
+### A git-based CMS instead of a database
+
+This was the decision the whole project turned on.
+
+The obvious option was a traditional CMS with a database. I rejected it because
+it means a server to maintain, a database that can fall over, and eventually a
+bill or an upgrade nobody in the village is equipped to handle.
+
+I used **Netlify CMS** instead. Content lives as files in the repository, edited
+through a friendly admin interface. Officials log in, write a post, upload a
+photo and hit publish. Behind the scenes that is a git commit, and Netlify
+rebuilds the site automatically.
+
+The practical consequences:
+
+- **No database** to back up, secure or pay for
+- **Free hosting**, so there is no renewal that quietly lapses
+- **Full version history**, so a mistaken edit is recoverable
+- **No specialist knowledge**, since the editor looks like a normal web form
+
+### Static generation
+
+Village internet is not fast and many residents browse on mid-range Android
+phones. Static pages from Next.js mean the site is HTML by the time it reaches
+a phone, with no server round trip to wait on. Static output also pairs
+naturally with the git-based CMS: every publish triggers a rebuild.
+
+### Structure that matches how the village thinks
+
+The navigation mirrors how the hamlet actually organises itself: Profile,
+Infographics, Institutions, Activities, Facilities. That last section maps
+mosques, the community hall, schools and sports fields, each with a location
+link, because those are the landmarks people actually ask about.
+
+## The hardest problem
+
+The hardest part was not technical. It was designing something for editors who
+had never used a CMS.
+
+My first version exposed too much. Fields for slugs, tags and metadata that made
+sense to me and meant nothing to a village official. Watching someone try to
+post an activity update, it was obvious the form was intimidating rather than
+helpful.
+
+I cut it back to the minimum: title, date, photo, description. Everything else
+is derived automatically. The lesson was that a handover is not complete when
+the code ships. It is complete when someone who has never seen the admin panel
+can publish a post without asking for help.
+
+## Outcome
+
+- A live official site with five content sections and around 25 images
+- Village officials publishing activity updates on their own
+- Zero running cost, so nothing lapses when funding attention moves on
+- Still in use after the KKN programme ended
+
+That last point is the one I care about. The measure of a handover project is
+whether it survives the handover.
+
+## What I would do differently
+
+**Write documentation in Indonesian, with screenshots.** I walked officials
+through the CMS in person, which worked while I was there. A written guide
+would survive staff turnover; a verbal walkthrough does not.
+
+**Optimise the images properly.** Photos are uploaded at whatever size the
+camera produced. On a slow connection that is the site's biggest weakness, and
+it is the part most directly in tension with the low-bandwidth audience I
+designed for. Next.js has an image component that would have handled this, and
+I should have wired it into the CMS upload path from the start.
+
+**Add a simple content checklist.** Something in the admin interface reminding
+editors what a good activity post contains, so quality does not drift as
+different people take over.

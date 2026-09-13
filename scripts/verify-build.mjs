@@ -40,13 +40,18 @@ const allFiles = walk(dist);
 const htmlFiles = allFiles.filter((f) => f.endsWith(".html"));
 
 console.log("\nPages");
-const expectedPages = [
-  "index.html",
-  "404.html",
-  "work/placeholder-one-dashboard/index.html",
-  "work/placeholder-two-storefront/index.html",
-  "work/placeholder-three-component-library/index.html",
-];
+// Derive the expected case-study routes from the content directory rather than
+// hardcoding slugs. Renaming an .mdx file should not require editing this file.
+const workDir = join(root, "src/content/work");
+const slugs = existsSync(workDir)
+  ? readdirSync(workDir)
+      .filter((f) => f.endsWith(".mdx"))
+      .map((f) => f.replace(/\.mdx$/, ""))
+  : [];
+
+check(`found ${slugs.length} case studies in src/content/work`, slugs.length >= 1);
+
+const expectedPages = ["index.html", "404.html", ...slugs.map((s) => `work/${s}/index.html`)];
 for (const p of expectedPages) check(p, existsSync(join(dist, p)));
 check("sitemap-index.xml", existsSync(join(dist, "sitemap-index.xml")));
 check("robots.txt", existsSync(join(dist, "robots.txt")));
@@ -151,20 +156,33 @@ console.log("\nContent language");
 {
   // The site is English-only. Indonesian filler is easy to leave behind when
   // drafting, so fail the build on common giveaways in visible text.
-  const idWords = [
-    "dan ", "yang ", "dengan ", "untuk ", "adalah ", "tidak ", "saya ",
-    "proyek ", "silakan", "terima kasih",
+  //
+  // Two refinements, both learned from false positives:
+  //   - Whole-word matching, because "dan" is a substring of "Padukuhan".
+  //   - Proper nouns are removed first. Organisation and place names such as
+  //     "Gelanggang Inovasi dan Kreativitas" are Indonesian by definition and
+  //     must not be translated.
+  const properNouns = [
+    "Gelanggang Inovasi dan Kreativitas",
+    "Padukuhan Manukan",
+    "Kalurahan Condongcatur",
+    "Beras Medium II",
   ];
+  const idWords = [
+    "dan", "yang", "dengan", "untuk", "adalah", "tidak", "saya",
+    "kami", "ini", "itu", "silakan", "terima kasih",
+  ];
+
   for (const f of htmlFiles) {
     const rel = f.replace(dist, "").replace(/\\/g, "/");
-    const html = readFileSync(f, "utf8");
-    // Strip tags, scripts and JSON-LD so only rendered copy is inspected.
-    const text = html
+    let text = readFileSync(f, "utf8")
       .replace(/<script[\s\S]*?<\/script>/gi, " ")
       .replace(/<style[\s\S]*?<\/style>/gi, " ")
       .replace(/<[^>]+>/g, " ")
       .toLowerCase();
-    const hits = idWords.filter((w) => text.includes(w));
+    for (const noun of properNouns) text = text.split(noun.toLowerCase()).join(" ");
+
+    const hits = idWords.filter((w) => new RegExp(`\\b${w}\\b`).test(text));
     check(`${rel}: English copy only`, hits.length === 0, `found: ${hits.join(", ")}`);
   }
   check("html lang is en", /<html[^>]+lang="en"/.test(home));
