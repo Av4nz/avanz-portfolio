@@ -35,6 +35,10 @@ bug, first confirm the check fails without the fix.
   text.
 - **No dead links.** `verify` allows no exemptions. Optional assets are handled
   by not rendering the link, see `src/lib/assets.ts`.
+- **The domain lives only in `src/data/site.ts`.** `robots.txt` is a generated
+  route (`src/pages/robots.txt.ts`), and `scripts/generate-og.mjs` reads the
+  name, role and host from site.ts. `verify` fails if any other file contains
+  the domain, so never add a static `public/robots.txt`.
 - **English only.** The site is written in English.
 
 ## Where things live

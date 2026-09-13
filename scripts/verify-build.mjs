@@ -187,6 +187,51 @@ console.log("\nDocumented fields match the schema");
   }
 }
 
+console.log("\nDomain has a single source of truth");
+{
+  // The domain must come from site.ts alone. Hardcoding it anywhere else means
+  // that changing the domain silently leaves stale absolute URLs behind, which
+  // is exactly the kind of bug nobody notices until the site is live.
+  const siteTs = readFileSync(join(root, "src/data/site.ts"), "utf8");
+  const configured = siteTs.match(/url:\s*"([^"]+)"/)?.[1];
+  check("site.ts declares a url", Boolean(configured), configured ?? "not found");
+
+  const host = configured ? new URL(configured).host : "";
+
+  // robots.txt must be generated, not a hand-maintained copy.
+  check(
+    "robots.txt is generated, not static",
+    !existsSync(join(root, "public/robots.txt")),
+    "public/robots.txt still exists and will shadow the generated route",
+  );
+
+  const robots = read("robots.txt");
+  check("robots.txt advertises the configured host", robots.includes(host), robots.trim());
+
+  const sitemap = read("sitemap-0.xml");
+  check("sitemap uses the configured host", sitemap.includes(`https://${host}/`));
+
+  check("canonical uses the configured host", home.includes(`https://${host}/`));
+
+  // Scan source for the domain written out by hand.
+  const sourceFiles = walk(join(root, "src")).concat(
+    existsSync(join(root, "public")) ? walk(join(root, "public")) : [],
+  );
+  const offenders = [];
+  for (const f of sourceFiles) {
+    if (f.endsWith(".png") || f.endsWith(".woff2") || f.endsWith(".pdf") || f.endsWith(".ico")) continue;
+    const rel = f.replace(root, "").replace(/\\/g, "/");
+    if (rel.endsWith("/src/data/site.ts")) continue; // the one allowed place
+    const body = readFileSync(f, "utf8");
+    if (host && body.includes(host)) offenders.push(rel);
+  }
+  check(
+    "no source file hardcodes the domain",
+    offenders.length === 0,
+    offenders.join(", "),
+  );
+}
+
 console.log("\nContent placeholders");
 const placeholderCount = htmlFiles.filter((f) =>
   readFileSync(f, "utf8").includes("Placeholder content"),

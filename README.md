@@ -54,6 +54,7 @@ src/
   pages/
     index.astro            ← landing page section order
     work/[slug].astro      ← case-study template
+    robots.txt.ts          ← generated from site.ts, do not add a static one
     404.astro
   styles/global.css        ← design tokens (colour, type, spacing)
 public/
@@ -131,8 +132,9 @@ and an engineering portfolio:
 
 ### 4. Regenerate the OG image
 
-After changing your name or tagline, update the constants at the top of
-`scripts/generate-og.mjs` and run `npm run og`.
+Run `npm run og`. It reads your name, role and domain from `src/data/site.ts`,
+so the only thing you might want to edit in the script itself is the short
+tagline, which is deliberately shorter than the hero one to fit the card.
 
 ---
 
@@ -170,6 +172,7 @@ The site currently passes, with checks enforced by `npm run verify` and
 - 24px minimum tap targets
 - One `<h1>` per page, no skipped heading levels
 - Every internal link resolves, with no exemptions
+- The domain is defined once; no file hardcodes it
 - Visible focus ring on all 18 focusable elements
 - Skip link is focusable, becomes visible, and its target exists
 - Under `prefers-reduced-motion`, content is visible with transitions disabled
@@ -198,9 +201,12 @@ detected defaults (build `npm run build`, output `dist`).
 Before going live:
 
 1. Set `url` in `src/data/site.ts` to your real domain
-2. Update the `Sitemap:` line in `public/robots.txt`
-3. Run `npm run og` so the share image matches
-4. Run `npm test` one last time
+2. Run `npm run og` so the share image picks up the new domain
+3. Run `npm test` one last time
+
+That is the whole list. `robots.txt`, the sitemap, canonical URLs, OG tags and
+JSON-LD all derive from that one `url` field, and `npm run verify` fails if any
+file hardcodes the domain instead.
 
 ---
 

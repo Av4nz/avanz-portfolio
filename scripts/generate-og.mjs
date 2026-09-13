@@ -20,11 +20,31 @@ import wawoff2 from "wawoff2";
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, "..");
 
-// Keep in sync with src/data/site.ts
-const NAME = "Affan Arfani Arifin";
-const ROLE = "Front-End Developer";
+/**
+ * Read identity straight from src/data/site.ts rather than duplicating it.
+ *
+ * A regex, not an import: site.ts is TypeScript and this script runs in bare
+ * Node with no transpiler. The fields are simple string literals, so this is
+ * reliable, and a miss throws immediately rather than silently baking a stale
+ * name into the share image.
+ */
+const siteSource = readFileSync(resolve(root, "src/data/site.ts"), "utf8");
+const field = (key) => {
+  const m = siteSource.match(new RegExp(`${key}:\\s*\\n?\\s*"((?:[^"\\\\]|\\\\.)*)"`));
+  if (!m) throw new Error(`Could not read "${key}" from src/data/site.ts`);
+  return m[1];
+};
+
+const NAME = field("name");
+const ROLE = field("role");
+const URL_LABEL = new URL(field("url")).host.toUpperCase();
+
+/**
+ * The hero tagline is a full sentence and too long for the card, so the OG
+ * image uses a short form. This is the one piece of copy that is intentionally
+ * separate; keep it under about 45 characters.
+ */
 const TAGLINE = "Fast, accessible web interfaces.";
-const URL_LABEL = "AVANZ.DEV";
 
 const BG = "#141416";
 const FG = "#FAFAF9";
