@@ -19,3 +19,4 @@ node_modules/
 Thumbs.db
 *.log
 npm-debug.log*
+.dev-server.log 

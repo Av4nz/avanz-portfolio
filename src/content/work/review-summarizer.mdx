@@ -1,25 +1,25 @@
 ---
 title: "Restaurant Review Summarizer"
-summary: "A tool that scrapes Google Maps reviews for a restaurant and returns a sentiment breakdown and summary, so an owner can read the gist of hundreds of reviews instead of scrolling them."
+summary: "A tool that collects Google Maps reviews for a restaurant and returns a sentiment breakdown and summary, so an owner can read the gist of hundreds of reviews instead of scrolling them."
 order: 3
 featured: true
 draft: false
 period: "2025"
-role: "Full-stack Developer & ML Engineer"
+role: "Full-stack Web Developer"
 duration: "2 weeks (May 2025)"
-team: "Solo"
-stack: ["FastAPI", "Python", "scikit-learn", "BeautifulSoup", "JavaScript"]
+team: "Five people. Two built the scraper, one built the summarisation model, two researched. I built the web application and the API that tied their work together."
+stack: ["FastAPI", "Python", "JavaScript", "Vite", "REST APIs"]
 repoUrl: "https://github.com/Av4nz/restaurant-review-summarizer-backend"
 outcomes:
-  - "Turns hundreds of scattered reviews into one sentiment breakdown and word cloud"
-  - "Layered FastAPI backend separating scraping, ML and API concerns"
+  - "Turned two independent Python components into one service a non-technical user could operate"
+  - "Layered FastAPI backend keeping scraping, ML and API concerns separate"
   - "Never deployed publicly: the scraping approach is fragile, and I would rebuild it on an official API"
 ---
 
 > **Note on scope.** This project is not live. The scraper depends on Google
 > Maps page structure, which changes without warning, so a public deployment
-> would break unpredictably. I have kept it here because the engineering and
-> the reasons it is not deployed are both worth explaining.
+> would break unpredictably. I have kept it here because the integration work
+> and the reasons it is not deployed are both worth explaining.
 
 ## Context
 
@@ -27,8 +27,10 @@ A restaurant with a few hundred Google Maps reviews has a real problem: the
 information is there, but nobody reads it. An owner sees a star rating and the
 five most recent comments, and everything else is buried.
 
-I built a tool that takes a restaurant, collects its reviews, classifies their
-sentiment and produces a summary with a word cloud of recurring terms.
+This was a five-person college project. Two teammates built the scraper, one
+built the summarisation model, and two handled research. **I built the web
+application and the API layer** that turned their separate pieces into
+something a person could actually use.
 
 ## The problem
 
@@ -36,17 +38,29 @@ A star rating compresses everything into one number. A 4.2 tells you almost
 nothing actionable: it does not distinguish a restaurant with consistently good
 food and slow service from one that is excellent at lunch and poor at dinner.
 
-The detail lives in the text, and text does not aggregate by itself. I wanted to
-answer a specific question: **what do people repeatedly complain about, and what
-do they repeatedly praise?**
+The detail lives in the text, and text does not aggregate by itself. The team
+wanted to answer a specific question: **what do people repeatedly complain
+about, and what do they repeatedly praise?**
 
 ## My role
 
-Solo, across three repositories:
+I was the full-stack web developer, which on this project meant being the
+integration layer.
 
-- **Backend** (Python, FastAPI) with the scraping and ML pipeline
-- **Frontend** (JavaScript) for submitting a restaurant and viewing results
-- **API** as a thin deployable service layer
+My teammates delivered working Python: a scraper that returns review data, and
+a model that summarises text and produces a word cloud. Both ran as scripts, on
+their machines, invoked by hand.
+
+What I owned:
+
+- The **FastAPI service** exposing scraping and summarisation as HTTP endpoints
+- The **front end** (JavaScript, Vite) for submitting a restaurant and viewing results
+- The **project structure** that let three people work without colliding
+- Getting the model artifact out of the repository once it started bloating clones
+
+I want to be precise, since it is easy to overclaim on group work. The sentiment
+model is not mine. I made 27 of the 42 commits on the backend, and those are
+overwhelmingly API and integration work, not modelling.
 
 ## Technical decisions
 
@@ -63,53 +77,61 @@ app/
 └── scrapers/         gmaps_scraper.py
 ```
 
-This mattered more than it looks. The scraper is the fragile part; the ML and
-API layers are stable. Keeping them apart means the scraper can be swapped for
-an official API without touching anything else, which is exactly the change I
-would make if I returned to this.
+This was as much a **teamwork decision as an architectural one**. With three
+people committing to one backend in two weeks, clear boundaries meant the
+scraper authors and the model author could work in their own directories and
+merge without conflicts. The API layer became the contract between us.
 
-### Splitting the model out of the repository
+It also isolates the fragile part. The scraper is the piece most likely to
+break; the ML and API layers are stable. Keeping them apart means the scraper
+can be swapped for an official API without touching anything else, which is
+exactly the change I would make if I returned to this.
 
-The trained sentiment model is a large binary. Committing it would bloat the
-repository and make every clone slow, so the README links to it separately.
+### Getting the model out of the repository
 
-That is the right instinct, but the wrong implementation. Model artifacts
-belong in something like DVC or a release asset, not a personal Drive link. The
+The trained sentiment model is a large binary. I first committed it, then tried
+**Git LFS**, and finally removed it entirely (`Delete ml_models/model.pth` is in
+the history) in favour of a download link in the README.
+
+That sequence is visible in the commits and I would not repeat it. Model
+artifacts belong in something like DVC or a release asset from the start. The
 current setup means the project cannot be reproduced if that link ever dies.
 
 ### Scraping, and why it was the wrong foundation
 
-Google Maps has no free public reviews API at any useful volume, so I scraped.
-It worked, and the whole project depends on that choice in a way I underestimated.
+Google Maps has no free public reviews API at any useful volume, so the team
+scraped. It worked, and the whole project depends on that choice in a way we
+underestimated.
 
 A scraper is coupled to a page structure that a company you do not control can
-change at any time. That is fine for a coursework project with a fixed deadline
-and fatal for anything that has to keep running. This is the reason the project
-is not deployed.
+change at any time. That is fine for a college project with a fixed deadline and
+fatal for anything that has to keep running. This is the reason the project is
+not deployed.
 
 ## The hardest problem
 
-Sentiment classification on **Indonesian restaurant reviews**, which are messier
-than the clean English datasets most tutorials assume.
+Integrating two components written by two different people, neither of them me,
+in a two-week window.
 
-Real reviews mix Indonesian and English in one sentence, use heavy regional
-slang and abbreviations, and rely on context that flips meaning entirely. A
-short review saying the portion is small is negative for value and neutral for
-someone dieting. Sarcasm broke the classifier constantly.
+The scraper returned whatever Google Maps happened to give it: inconsistent
+field names, missing ratings, reviews with no text at all. The model expected
+clean input. Wiring them directly meant the API crashed on the first restaurant
+with an empty review.
 
-I improved it with preprocessing tuned for the actual language: normalising
-common slang, handling mixed-language tokens, and stripping the emoji noise that
-was polluting the feature space. It got usefully better without ever getting
-genuinely good.
+The fix was to stop treating the API as a passthrough. I defined a schema at the
+boundary and normalised the scraper's output into it before the model ever saw
+it, so malformed reviews were dropped or filled with defaults rather than
+propagating. That gave each teammate a contract instead of a moving target, and
+it moved every parsing failure into one place I could debug.
 
-The honest conclusion is that a bag-of-words approach is the wrong tool for
-informal Indonesian. A transformer fine-tuned on Indonesian text, IndoBERT for
-example, would handle context and negation properly. I did not have the compute
-budget at the time, and I chose to ship something working over something stalled.
+The lesson I took: when several people build parts of one system, **the
+integration layer is where the real work is**, and it is worth designing rather
+than improvising.
 
 ## Outcome
 
 - A working pipeline from a restaurant name to a sentiment breakdown and word cloud
+- Three people's separate scripts running as one service behind a web UI
 - A backend structure clean enough that the fragile part is genuinely replaceable
 - A clear understanding of where the approach breaks
 
@@ -117,11 +139,13 @@ budget at the time, and I chose to ship something working over something stalled
 
 **Do not build on a scraper.** The dependency on someone else's page structure
 is the single reason this is not live. Google Places API has real costs and real
-quotas, but it has a contract, and a project that can only run on my machine is
+quotas, but it has a contract, and a project that only runs on our machines is
 not finished.
 
-**Use a language model suited to the language.** Fine-tuning IndoBERT would deal
-with the code-switching and negation that defeated the classical model.
+**Define the data contract on day one.** We integrated at the end, which is when
+we discovered the mismatch. Agreeing the schema between scraper and model
+upfront would have saved most of the debugging.
 
-**Version the model artifact properly.** A Drive link is not reproducibility.
-DVC or a tagged release would make the project clonable years from now.
+**Version the model artifact properly.** Committing it, moving to Git LFS, then
+deleting it in favour of a Drive link is not reproducibility. DVC or a tagged
+release would make the project clonable years from now.
