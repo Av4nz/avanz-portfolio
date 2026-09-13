@@ -89,7 +89,7 @@ export const experience = [
   {
     role: "Website Administrator",
     company: "Gelanggang Inovasi dan Kreativitas (GIK) UGM",
-    period: "Jul 2026 — Dec 2026",
+    period: "Jul 2026 — Present",
     description:
       "Maintaining and updating the web presence for UGM's innovation and creativity hub, keeping content current for a venue that runs a continuous programme of public events.",
   },
