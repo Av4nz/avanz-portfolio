@@ -1,0 +1,98 @@
+---
+import { Image } from "astro:assets";
+import type { CollectionEntry } from "astro:content";
+
+interface Props {
+  entry: CollectionEntry<"work">;
+  index: number;
+}
+
+const { entry, index } = Astro.props;
+const { title, summary, stack, period, cover, coverAlt, draft } = entry.data;
+const num = String(index + 1).padStart(2, "0");
+---
+
+{/*
+  The signature interaction: an index row, not a card grid.
+  The whole row is one link (a stretched-link pattern keeps the accessible name
+  clean and gives a single, large tap target). Hover lifts the title in accent
+  and slides the arrow, echoing a Swiss-style table of contents.
+*/}
+<article
+  class="reveal group relative border-b border-line transition-colors duration-300 hover:border-accent"
+>
+  <a
+    href={`/work/${entry.id}/`}
+    class="grid grid-cols-1 items-start gap-x-8 gap-y-4 py-8 md:grid-cols-12 md:py-10"
+  >
+    <div class="flex items-center gap-4 md:col-span-1">
+      <span class="label transition-colors duration-300 group-hover:text-accent-text">{num}</span>
+    </div>
+
+    <div class="md:col-span-6 lg:col-span-5">
+      <h3
+        class="text-2xl leading-tight transition-colors duration-300 group-hover:text-accent-text sm:text-3xl"
+      >
+        {title}
+        {
+          draft && (
+            <span class="ml-3 align-middle rounded-sm border border-line-strong px-2 py-0.5 font-mono text-[0.625rem] font-medium uppercase tracking-wider text-fg-subtle">
+              Placeholder
+            </span>
+          )
+        }
+      </h3>
+      <p class="mt-3 max-w-xl text-base leading-relaxed text-fg-muted">{summary}</p>
+
+      <ul class="mt-5 flex flex-wrap gap-x-2 gap-y-2" aria-label="Technologies used">
+        {
+          stack.map((tech) => (
+            <li class="rounded-sm bg-surface-2 px-2.5 py-1 font-mono text-xs text-fg-muted">
+              {tech}
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+
+    <div class="md:col-span-4 lg:col-span-5">
+      {
+        cover ? (
+          <div class="overflow-hidden rounded-md border border-line bg-surface-2">
+            <Image
+              src={cover}
+              alt={coverAlt ?? ""}
+              widths={[400, 800, 1200]}
+              sizes="(min-width: 1024px) 40vw, (min-width: 768px) 33vw, 100vw"
+              class="aspect-video w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+              loading={index < 2 ? "eager" : "lazy"}
+            />
+          </div>
+        ) : (
+          <div
+            class="grid aspect-video place-items-center rounded-md border border-dashed border-line bg-surface-2"
+            aria-hidden="true"
+          >
+            <span class="label">Image pending</span>
+          </div>
+        )
+      }
+    </div>
+
+    <div class="flex items-center justify-between md:col-span-1 md:justify-end">
+      <span class="label md:hidden">{period}</span>
+      <svg
+        class="size-5 text-fg-subtle transition-all duration-300 group-hover:translate-x-1 group-hover:text-accent-text"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.6"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M5 12h14M12 5l7 7-7 7" />
+      </svg>
+    </div>
+  </a>
+</article>

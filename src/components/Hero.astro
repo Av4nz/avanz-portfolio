@@ -1,0 +1,71 @@
+---
+import { site } from "../data/site";
+
+const availabilityId = "hero-availability";
+---
+
+<section class="relative overflow-hidden">
+  {/* Swiss-grid backdrop: faint vertical rules, hidden from assistive tech. */}
+  <div
+    aria-hidden="true"
+    class="pointer-events-none absolute inset-0 mx-auto hidden max-w-content grid-cols-4 px-gutter md:grid"
+  >
+    <div class="border-l border-line/50"></div>
+    <div class="border-l border-line/50"></div>
+    <div class="border-l border-line/50"></div>
+    <div class="border-x border-line/50"></div>
+  </div>
+
+  <div class="relative mx-auto max-w-content px-gutter pb-20 pt-20 sm:pb-28 sm:pt-28 lg:pt-36">
+    <p class="label reveal mb-8 flex items-center gap-3 text-fg-muted" id={availabilityId}>
+      <span class="relative flex size-2">
+        <span
+          class="absolute inline-flex size-full animate-ping rounded-full bg-accent opacity-60"
+          style="animation-duration:2.4s"></span>
+        <span class="relative inline-flex size-2 rounded-full bg-accent"></span>
+      </span>
+      {site.availability}
+    </p>
+
+    <h1
+      class="reveal max-w-5xl font-display text-[clamp(2.5rem,8vw,6rem)] font-semibold leading-[0.95] tracking-[-0.03em]"
+    >
+      {site.name}
+    </h1>
+
+    <div class="reveal mt-8 grid gap-x-12 gap-y-6 border-t border-line pt-8 md:grid-cols-12">
+      <p class="label md:col-span-3">{site.role}</p>
+      <p class="max-w-2xl text-lg leading-relaxed text-fg-muted md:col-span-9 md:text-xl">
+        {site.tagline}
+      </p>
+    </div>
+
+    <div class="reveal mt-12 flex flex-wrap items-center gap-3">
+      <a
+        href="#work"
+        class="group inline-flex items-center gap-2 rounded-md bg-accent px-6 py-3 text-sm font-medium text-accent-contrast transition-colors hover:bg-accent-strong"
+      >
+        View selected work
+        <svg
+          class="size-4 transition-transform duration-300 group-hover:translate-y-0.5"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M12 5v14M19 12l-7 7-7-7" />
+        </svg>
+      </a>
+
+      <a
+        href={site.cv}
+        class="inline-flex items-center gap-2 rounded-md border border-line-strong px-6 py-3 text-sm font-medium text-fg transition-colors hover:bg-surface-2"
+      >
+        Download CV
+      </a>
+    </div>
+  </div>
+</section>

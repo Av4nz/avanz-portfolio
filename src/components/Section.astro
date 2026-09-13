@@ -1,0 +1,38 @@
+---
+interface Props {
+  id?: string;
+  /** Monospace eyebrow, e.g. "Selected Work". */
+  label?: string;
+  /** Two-digit index rendered before the label, e.g. "01". */
+  index?: string;
+  title?: string;
+  /** Optional short paragraph under the title. */
+  intro?: string;
+  class?: string;
+}
+
+const { id, label, index, title, intro, class: className = "" } = Astro.props;
+---
+
+<section id={id} class={`scroll-mt-24 py-section ${className}`}>
+  <div class="mx-auto max-w-content px-gutter">
+    {
+      (label || title) && (
+        <header class="reveal mb-12 border-t border-line-strong pt-6">
+          {label && (
+            <p class="label mb-6 flex items-center gap-3">
+              {index && <span class="text-accent-text">{index}</span>}
+              <span>{label}</span>
+            </p>
+          )}
+          {title && (
+            <h2 class="max-w-3xl text-3xl leading-[1.1] sm:text-4xl md:text-5xl">{title}</h2>
+          )}
+          {intro && <p class="mt-5 max-w-2xl text-base text-fg-muted sm:text-lg">{intro}</p>}
+        </header>
+      )
+    }
+
+    <slot />
+  </div>
+</section>

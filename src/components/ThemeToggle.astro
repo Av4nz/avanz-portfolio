@@ -1,0 +1,49 @@
+---
+/**
+ * Light/dark toggle.
+ * Progressive enhancement: hidden until JS confirms it works, so it is never
+ * a dead control. The initial theme is applied in Layout.astro before paint.
+ */
+---
+
+<button
+  id="theme-toggle"
+  type="button"
+  class="hidden size-9 place-items-center rounded-md border border-line text-fg-muted transition-colors hover:border-line-strong hover:text-fg"
+  aria-label="Toggle colour theme"
+  aria-pressed="false"
+>
+  <svg class="size-4 dark:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="4" />
+    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+  </svg>
+  <svg class="hidden size-4 dark:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+  </svg>
+</button>
+
+<script>
+  const toggle = document.getElementById("theme-toggle");
+  const root = document.documentElement;
+
+  if (toggle) {
+    // Reveal only once we know the script is running.
+    toggle.classList.remove("hidden");
+    toggle.classList.add("grid");
+
+    const sync = () => {
+      toggle.setAttribute("aria-pressed", String(root.classList.contains("dark")));
+    };
+    sync();
+
+    toggle.addEventListener("click", () => {
+      const isDark = root.classList.toggle("dark");
+      try {
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+      } catch (_) {
+        /* storage blocked: the choice simply will not persist */
+      }
+      sync();
+    });
+  }
+</script>

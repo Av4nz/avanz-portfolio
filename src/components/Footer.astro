@@ -1,0 +1,30 @@
+---
+import { site } from "../data/site";
+const year = new Date().getFullYear();
+---
+
+<footer class="mt-section border-t border-line">
+  <div
+    class="mx-auto flex max-w-content flex-col gap-4 px-gutter py-10 text-sm text-fg-subtle sm:flex-row sm:items-center sm:justify-between"
+  >
+    <p>© {year} {site.name}. Built with Astro.</p>
+
+    <ul class="flex flex-wrap items-center gap-x-2 gap-y-1">
+      {
+        site.socials.map((social) => (
+          <li>
+            <a
+              href={social.href}
+              class="link-underline -mx-2 inline-flex min-h-11 items-center px-2 transition-colors hover:text-fg"
+              {...(social.href.startsWith("http")
+                ? { target: "_blank", rel: "noopener noreferrer" }
+                : {})}
+            >
+              {social.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</footer>

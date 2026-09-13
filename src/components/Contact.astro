@@ -1,0 +1,58 @@
+---
+import { site } from "../data/site";
+---
+
+<div class="grid gap-x-12 gap-y-10 md:grid-cols-12">
+  <div class="reveal md:col-span-7">
+    <a
+      href={`mailto:${site.email}`}
+      class="group inline-block font-display text-[clamp(1.75rem,5vw,3.25rem)] font-semibold leading-tight tracking-tight transition-colors hover:text-accent-text"
+    >
+      {site.email}
+      <span
+        class="mt-2 block h-px w-full origin-left scale-x-0 bg-accent transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-x-100"
+        aria-hidden="true"></span>
+    </a>
+
+    <p class="mt-8 max-w-xl text-base leading-relaxed text-fg-muted">
+      The fastest way to reach me is email. I read everything and reply within a
+      couple of days.
+    </p>
+  </div>
+
+  <div class="reveal md:col-span-5">
+    <h3 class="label mb-5">Elsewhere</h3>
+    <ul class="space-y-0">
+      {
+        site.socials.map((social) => (
+          <li class="border-b border-line first:border-t">
+            <a
+              href={social.href}
+              class="group flex items-center justify-between py-4 transition-colors hover:text-accent-text"
+              {...(social.href.startsWith("http")
+                ? { target: "_blank", rel: "noopener noreferrer" }
+                : {})}
+            >
+              <span class="text-base font-medium">{social.label}</span>
+              <span class="flex items-center gap-3 font-mono text-xs text-fg-subtle">
+                {social.handle}
+                <svg
+                  class="size-4 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M7 17L17 7M7 7h10v10" />
+                </svg>
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</div>
