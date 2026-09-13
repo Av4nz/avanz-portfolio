@@ -1,43 +1,190 @@
-# Astro Starter Kit: Minimal
+# AvanZ Portfolio
 
-```sh
-npm create astro@latest -- --template minimal
+Personal portfolio for **Affan Arfani Arifin** (AvanZ), Front-End Developer.
+
+Built with [Astro](https://astro.build), [Tailwind CSS v4](https://tailwindcss.com)
+and MDX content collections. Ships **0 KB of JavaScript** on the initial load.
+
+---
+
+## Quick start
+
+```bash
+npm install
+npm run dev          # http://localhost:4321
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+| Script | What it does |
+| --- | --- |
+| `npm run dev` | Dev server with hot reload |
+| `npm run build` | Type-check, then build to `dist/` |
+| `npm run preview` | Serve the built site locally |
+| `npm run check` | TypeScript + Astro diagnostics only |
+| `npm run verify` | Structural checks on `dist/` (links, meta tags, perf budgets) |
+| `npm run audit` | Runtime checks in headless Chrome (overflow, contrast, tap targets) |
+| `npm run shots` | Screenshots to `.screenshots/` across viewports and themes |
+| `npm run og` | Regenerate `public/og.png` (the social share image) |
 
-## 🚀 Project Structure
+`verify`, `audit` and `shots` need the preview server running:
 
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
+```bash
+npm run build
+npm run preview      # terminal 1
+npm run audit        # terminal 2
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+---
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+## Where to edit things
 
-Any static assets, like images, can be placed in the `public/` directory.
+```
+src/
+  data/site.ts             ← ALL your personal details live here
+  content/work/*.mdx       ← one file per case study
+  content.config.ts        ← case-study schema (the content checklist)
+  components/              ← Hero, WorkCard, About, Contact, Header, Footer
+  layouts/Layout.astro     ← <head>, SEO, JSON-LD, theme script
+  pages/
+    index.astro            ← landing page section order
+    work/[slug].astro      ← case-study template
+    404.astro
+  styles/global.css        ← design tokens (colour, type, spacing)
+public/
+  cv.pdf                   ← ADD THIS: your actual CV
+  og.png                   ← generated, do not edit by hand
+```
 
-## 🧞 Commands
+**Rule of thumb:** to change text, edit `src/data/site.ts` or an `.mdx` file.
+To change looks, edit `src/styles/global.css`. Components rarely need touching.
 
-All commands are run from the root of the project, from a terminal:
+---
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+## Your to-do list
 
-## 👀 Want to learn more?
+Everything below is placeholder content. Search the project for `TODO:` to find
+each one.
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+### 1. Personal details, in `src/data/site.ts`
+
+- [ ] `email` — real address
+- [ ] `socials` — real GitHub and LinkedIn URLs
+- [ ] `url` — your domain, once you buy one
+- [ ] `experience` — internship company, university, real descriptions
+- [ ] `bio` — rewrite in your own voice
+- [ ] `skillGroups` — remove anything you would not want to be interviewed on
+
+### 2. Add your CV
+
+Drop the file at `public/cv.pdf`. The header and hero links already point there.
+
+### 3. Replace the three case studies
+
+Delete the files in `src/content/work/` and write your own. For each project you
+need the frontmatter below, and the schema in `src/content.config.ts` will fail
+the build if anything is missing or malformed.
+
+| Field | Meaning | Example |
+| --- | --- | --- |
+| `title` | Project name | `Rasa Nusantara Ordering App` |
+| `summary` | One sentence: what and for whom | Shown on the landing page |
+| `order` | Sort order, lower first | `1` |
+| `featured` | Show on the landing page | `true` |
+| `period` | Year or range | `2025 — 2026` |
+| `role` | Your actual role | `Front-End Developer` |
+| `duration` | How long it took | `6 weeks` |
+| `team` | Solo, or who did what | `Solo` / `2 devs + 1 designer` |
+| `stack` | 3-6 key technologies | `["React", "TypeScript"]` |
+| `liveUrl` | Live site (optional) | Omit if nothing is public |
+| `repoUrl` | Source code (optional) | Omit if private |
+| `outcomes` | Measurable results | `"LCP 4.1s → 1.3s on 3G"` |
+| `cover` | 16:9 image beside the `.mdx` (optional) | |
+| `draft` | `true` flags it as a placeholder | Set `false` when real |
+
+The body then follows a fixed structure. It is the difference between a gallery
+and an engineering portfolio:
+
+1. **Context** — what, who for, when
+2. **The problem** — what was broken before
+3. **My role** — what you personally owned
+4. **Technical decisions** — *the section reviewers actually read*. For each
+   choice, name the alternative you rejected and why
+5. **The hardest problem** — one real bug, including the dead end
+6. **Outcome** — numbers if you have them
+7. **What I would do differently** — one honest limitation
+
+> Numbers beat adjectives. "Lighthouse 72 → 98" is worth more than
+> "improved performance". If you have no numbers, say so honestly and describe
+> the qualitative change.
+
+### 4. Regenerate the OG image
+
+After changing your name or tagline, update the constants at the top of
+`scripts/generate-og.mjs` and run `npm run og`.
+
+---
+
+## Design system
+
+Swiss-minimal: near-monochrome, one accent, typography doing the work.
+
+| Token | Light | Dark |
+| --- | --- | --- |
+| `--bg` | near-white | near-black |
+| `--fg` / `--fg-muted` / `--fg-subtle` | text hierarchy | |
+| `--accent` | Signal Vermilion | brighter vermilion |
+| `--accent-text` | AA-safe accent for text | |
+
+**Changing the accent colour** is a two-line edit in `src/styles/global.css`.
+Alternative presets (ochre, deep teal, chartreuse) are in a comment there.
+
+Colours are OKLCH and were **solved, not guessed**: `scripts/solve-contrast.mjs`
+computes the lightness each token needs to clear WCAG AA against the tightest
+background it appears on. Re-run it if you change the palette.
+
+Type: Inter Tight (headings), Inter (body), JetBrains Mono (labels). Self-hosted,
+Latin subset only, three woff2 files total.
+
+---
+
+## Quality gates
+
+The site currently passes, with checks enforced by `npm run verify` and
+`npm run audit`:
+
+- 0 KB client JS, ~30 KB CSS, 3 font files
+- No horizontal overflow at 320 / 390 / 768 / 1440 px
+- WCAG AA contrast on every text node, in both themes
+- 24px minimum tap targets
+- One `<h1>` per page, no skipped heading levels
+- Every internal link resolves
+- Skip link, focus rings, `prefers-reduced-motion` respected
+
+---
+
+## Deploying
+
+The site is fully static, so any host works.
+
+**Vercel or Cloudflare Pages:** push to GitHub, import the repo, accept the
+detected defaults (build `npm run build`, output `dist`).
+
+Before going live:
+
+1. Set `url` in `src/data/site.ts` to your real domain
+2. Update the `Sitemap:` line in `public/robots.txt`
+3. Run `npm run og` so the share image matches
+4. Run `npm run build && npm run preview && npm run audit` one last time
+
+---
+
+## Learning Astro
+
+If Astro is new to you, the mental model is small:
+
+- A `.astro` file is HTML with an optional JavaScript block at the top, fenced
+  by `---`. That block runs **at build time only**.
+- `{expression}` interpolates a value into the markup, like JSX.
+- Anything inside `<script>` runs in the browser, and only that ships to users.
+- Components are just imported and used as tags. No hooks, no lifecycle.
+
+That is roughly 90% of what this project uses.
