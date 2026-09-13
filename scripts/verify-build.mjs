@@ -52,6 +52,34 @@ check("sitemap-index.xml", existsSync(join(dist, "sitemap-index.xml")));
 check("robots.txt", existsSync(join(dist, "robots.txt")));
 check("og.png", existsSync(join(dist, "og.png")));
 check("favicon.svg", existsSync(join(dist, "favicon.svg")));
+check("favicon.ico", existsSync(join(dist, "favicon.ico")));
+check("apple-touch-icon.png", existsSync(join(dist, "apple-touch-icon.png")));
+
+console.log("\nIcons are ours, not the scaffold's");
+{
+  // Astro's starter ships a rocket favicon.ico. Shipping it on a personal
+  // portfolio is a small but real branding leak, so assert it is gone.
+  const ico = readFileSync(join(dist, "favicon.ico"));
+  check("favicon.ico is a valid ICO container", ico.readUInt16LE(0) === 0 && ico.readUInt16LE(2) === 1);
+  const entries = ico.readUInt16LE(4);
+  check(`favicon.ico declares ${entries} image(s)`, entries >= 1);
+  if (entries >= 1) {
+    const size = ico.readUInt32LE(6 + 8);
+    const offset = ico.readUInt32LE(6 + 12);
+    check("favicon.ico image data is in bounds", offset + size <= ico.length);
+    const sig = ico.subarray(offset, offset + 8);
+    check(
+      "favicon.ico embeds a PNG",
+      sig.equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])),
+    );
+  }
+  // The scaffold icon was 655 bytes and drawn as a rocket; ours is generated
+  // from favicon.svg. Compare against the SVG's accent colour instead of a
+  // brittle byte count.
+  const svg = readFileSync(join(dist, "favicon.svg"), "utf8");
+  check("favicon.svg carries the AvanZ label", svg.includes('aria-label="AvanZ"'));
+  check("favicon.svg uses the accent colour", /#F0(4E|56)23/i.test(svg));
+}
 
 console.log("\nHome page head");
 const home = read("index.html");
@@ -105,12 +133,58 @@ for (const f of htmlFiles) {
 for (const href of [...hrefs].sort()) {
   const target = href.endsWith("/") ? join(href, "index.html") : href;
   const onDisk = join(dist, target.replace(/^[/\\]/, ""));
-  // /cv.pdf is expected to be missing until the user supplies one.
-  if (href === "/cv.pdf") {
-    check(`${href} (optional)`, true, "");
-    continue;
-  }
+  // No exemptions: every emitted internal link must resolve. Optional assets
+  // such as the CV are handled by not rendering the link at all (src/lib/assets.ts).
   check(`${href}`, existsSync(onDisk) || existsSync(onDisk + ".html"));
+}
+
+console.log("\nOptional CV handling");
+const cvExists = existsSync(join(dist, "cv.pdf"));
+const cvLinked = [...hrefs].includes("/cv.pdf");
+check(
+  cvExists ? "cv.pdf present and linked" : "no cv.pdf, so no CV link is rendered",
+  cvExists ? cvLinked : !cvLinked,
+  cvExists ? "file exists but nothing links to it" : "a /cv.pdf link would 404",
+);
+
+console.log("\nContent language");
+{
+  // The site is English-only. Indonesian filler is easy to leave behind when
+  // drafting, so fail the build on common giveaways in visible text.
+  const idWords = [
+    "dan ", "yang ", "dengan ", "untuk ", "adalah ", "tidak ", "saya ",
+    "proyek ", "silakan", "terima kasih",
+  ];
+  for (const f of htmlFiles) {
+    const rel = f.replace(dist, "").replace(/\\/g, "/");
+    const html = readFileSync(f, "utf8");
+    // Strip tags, scripts and JSON-LD so only rendered copy is inspected.
+    const text = html
+      .replace(/<script[\s\S]*?<\/script>/gi, " ")
+      .replace(/<style[\s\S]*?<\/style>/gi, " ")
+      .replace(/<[^>]+>/g, " ")
+      .toLowerCase();
+    const hits = idWords.filter((w) => text.includes(w));
+    check(`${rel}: English copy only`, hits.length === 0, `found: ${hits.join(", ")}`);
+  }
+  check("html lang is en", /<html[^>]+lang="en"/.test(home));
+}
+
+console.log("\nDocumented fields match the schema");
+{
+  // The README tells Affan exactly which frontmatter fields to supply. If the
+  // schema and the docs drift apart, he follows instructions that fail to build.
+  const schema = readFileSync(join(root, "src/content.config.ts"), "utf8");
+  const readme = readFileSync(join(root, "README.md"), "utf8");
+  const documented = [
+    "title", "summary", "order", "featured", "period", "role", "duration",
+    "team", "stack", "liveUrl", "repoUrl", "outcomes", "cover", "draft",
+  ];
+  for (const field of documented) {
+    const inSchema = new RegExp(`^\\s*${field}:`, "m").test(schema);
+    const inReadme = readme.includes(`\`${field}\``);
+    check(`${field}: in schema and README`, inSchema && inReadme, `schema=${inSchema} readme=${inReadme}`);
+  }
 }
 
 console.log("\nContent placeholders");

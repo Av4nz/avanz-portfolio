@@ -24,6 +24,7 @@ npm run dev          # http://localhost:4321
 | `npm run audit` | Runtime checks in headless Chrome (overflow, contrast, tap targets) |
 | `npm run shots` | Screenshots to `.screenshots/` across viewports and themes |
 | `npm run og` | Regenerate `public/og.png` (the social share image) |
+| `npm run icons` | Regenerate `favicon.ico` and `apple-touch-icon.png` from `favicon.svg` |
 
 `verify`, `audit` and `shots` need the preview server running:
 
@@ -44,6 +45,7 @@ src/
   content.config.ts        ← case-study schema (the content checklist)
   components/              ← Hero, WorkCard, About, Contact, Header, Footer
   layouts/Layout.astro     ← <head>, SEO, JSON-LD, theme script
+  lib/assets.ts            ← build-time detection of optional files (the CV)
   pages/
     index.astro            ← landing page section order
     work/[slug].astro      ← case-study template
@@ -51,6 +53,7 @@ src/
   styles/global.css        ← design tokens (colour, type, spacing)
 public/
   cv.pdf                   ← ADD THIS: your actual CV
+  favicon.svg              ← edit this, then run `npm run icons`
   og.png                   ← generated, do not edit by hand
 ```
 
@@ -75,7 +78,12 @@ each one.
 
 ### 2. Add your CV
 
-Drop the file at `public/cv.pdf`. The header and hero links already point there.
+Drop the file at `public/cv.pdf`.
+
+Until you do, the CV links are **not rendered at all**, so there is no broken
+link on the live site. The moment the file exists, the header "CV" link appears
+and the hero's secondary button switches from "Get in touch" to "Download CV".
+No code change needed, just rebuild. `npm run verify` checks both directions.
 
 ### 3. Replace the three case studies
 
@@ -156,8 +164,15 @@ The site currently passes, with checks enforced by `npm run verify` and
 - WCAG AA contrast on every text node, in both themes
 - 24px minimum tap targets
 - One `<h1>` per page, no skipped heading levels
-- Every internal link resolves
-- Skip link, focus rings, `prefers-reduced-motion` respected
+- Every internal link resolves, with no exemptions
+- Visible focus ring on all 18 focusable elements
+- Skip link is focusable, becomes visible, and its target exists
+- Under `prefers-reduced-motion`, content is visible with transitions disabled
+- Icons are yours, not the Astro scaffold's rocket
+- English-only copy
+
+Each claim above has a corresponding automated check. If you add a feature,
+add the check that proves it, and confirm the check fails without the fix.
 
 ---
 

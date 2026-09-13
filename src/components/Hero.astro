@@ -1,7 +1,14 @@
 ---
 import { site } from "../data/site";
+import { hasCV } from "../lib/assets";
 
 const availabilityId = "hero-availability";
+
+// The secondary CTA falls back to email until a CV is added, so the hero keeps
+// its two-button balance and never offers a link that 404s.
+const secondary = hasCV
+  ? { href: site.cv, label: "Download CV" }
+  : { href: `mailto:${site.email}`, label: "Get in touch" };
 ---
 
 <section class="relative overflow-hidden">
@@ -61,10 +68,10 @@ const availabilityId = "hero-availability";
       </a>
 
       <a
-        href={site.cv}
+        href={secondary.href}
         class="inline-flex items-center gap-2 rounded-md border border-line-strong px-6 py-3 text-sm font-medium text-fg transition-colors hover:bg-surface-2"
       >
-        Download CV
+        {secondary.label}
       </a>
     </div>
   </div>

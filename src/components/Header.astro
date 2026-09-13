@@ -1,5 +1,6 @@
 ---
 import { site, nav } from "../data/site";
+import { hasCV } from "../lib/assets";
 import ThemeToggle from "./ThemeToggle.astro";
 ---
 
@@ -32,12 +33,17 @@ import ThemeToggle from "./ThemeToggle.astro";
         }
       </ul>
 
-      <a
-        href={site.cv}
-        class="mr-1 rounded-md px-3 py-2 text-sm text-fg-muted transition-colors hover:text-fg sm:mr-2"
-      >
-        CV
-      </a>
+      {
+        /* Rendered only when public/cv.pdf exists, so this is never a dead link. */
+        hasCV && (
+          <a
+            href={site.cv}
+            class="mr-1 rounded-md px-3 py-2 text-sm text-fg-muted transition-colors hover:text-fg sm:mr-2"
+          >
+            CV
+          </a>
+        )
+      }
 
       <ThemeToggle />
     </nav>

@@ -403,6 +403,109 @@ for (const page of pages) {
   check(`${page.label}: no skipped levels`, h.skips.length === 0, h.skips.join(" | "));
 }
 
+console.log("\n=== Keyboard focus ===");
+// The README promises visible focus rings. Tab through the first interactive
+// elements and confirm each one paints an outline distinct from its resting
+// state, which is what a keyboard user actually relies on.
+await goto(BASE + "/", 1440, 900);
+const focusReport = await evaluate(`(() => {
+  const focusables = [...document.querySelectorAll(
+    'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])'
+  )].filter((el) => {
+    const r = el.getBoundingClientRect();
+    const cs = getComputedStyle(el);
+    return cs.visibility !== "hidden" && cs.display !== "none" && (r.width > 0 || el.className.includes("sr-only"));
+  });
+
+  const bad = [];
+  let tested = 0;
+  for (const el of focusables.slice(0, 25)) {
+    el.blur();
+    const before = getComputedStyle(el);
+    const restingOutline = before.outlineStyle + " " + before.outlineWidth;
+    const restingShadow = before.boxShadow;
+
+    el.focus();
+    const after = getComputedStyle(el);
+    const focusOutline = after.outlineStyle + " " + after.outlineWidth;
+    const focusShadow = after.boxShadow;
+
+    tested++;
+    const hasOutline = after.outlineStyle !== "none" && parseFloat(after.outlineWidth) > 0;
+    const changed = restingOutline !== focusOutline || restingShadow !== focusShadow;
+    if (!hasOutline && !changed) {
+      bad.push({
+        tag: el.tagName.toLowerCase(),
+        text: (el.textContent || "").trim().slice(0, 28),
+        outline: focusOutline,
+      });
+    }
+    el.blur();
+  }
+  return { tested, bad: bad.slice(0, 6) };
+})()`);
+check(
+  `focus ring on all ${focusReport.tested} focusable elements`,
+  focusReport.bad.length === 0,
+  focusReport.bad.map((b) => `<${b.tag}> "${b.text}" outline=${b.outline}`).join(" | "),
+);
+
+// The skip link must be reachable and must leave the visually-hidden state.
+const skipReport = await evaluate(`(() => {
+  const link = document.querySelector('a[href="#main"]');
+  if (!link) return { found: false };
+  link.focus();
+  const r = link.getBoundingClientRect();
+  const target = document.querySelector("#main");
+  return {
+    found: true,
+    focused: document.activeElement === link,
+    width: Math.round(r.width),
+    height: Math.round(r.height),
+    targetExists: !!target,
+  };
+})()`);
+check("skip link exists", skipReport.found === true);
+check("skip link is focusable", skipReport.focused === true);
+check(
+  "skip link becomes visible on focus",
+  skipReport.width > 40 && skipReport.height > 20,
+  `${skipReport.width}x${skipReport.height}`,
+);
+check("skip link target #main exists", skipReport.targetExists === true);
+
+console.log("\n=== Reduced motion ===");
+// With prefers-reduced-motion: reduce, content must be visible immediately
+// rather than waiting on a transition, and transitions must be neutralised.
+await call("Emulation.setEmulatedMedia", {
+  features: [{ name: "prefers-reduced-motion", value: "reduce" }],
+});
+await call("Page.navigate", { url: BASE + "/" });
+await sleep(600);
+const rmReport = await evaluate(`(() => {
+  const els = [...document.querySelectorAll(".reveal")];
+  const invisible = els.filter((e) => Number(getComputedStyle(e).opacity) < 0.9);
+  const durations = els.slice(0, 5).map((e) => getComputedStyle(e).transitionDuration);
+  return {
+    total: els.length,
+    invisible: invisible.length,
+    durations,
+    mediaMatches: matchMedia("(prefers-reduced-motion: reduce)").matches,
+  };
+})()`);
+check("reduced-motion media query is active", rmReport.mediaMatches === true);
+check(
+  `all ${rmReport.total} reveal elements visible without animating`,
+  rmReport.invisible === 0,
+  `${rmReport.invisible} still transparent`,
+);
+check(
+  "transitions neutralised under reduced motion",
+  rmReport.durations.every((d) => parseFloat(d) <= 0.001),
+  rmReport.durations.join(", "),
+);
+await call("Emulation.setEmulatedMedia", { features: [] });
+
 console.log("\n=== Reveal animation ===");
 // With JS enabled and motion allowed, .reveal must end up visible.
 await call("Emulation.setEmulatedMedia", { features: [] });
