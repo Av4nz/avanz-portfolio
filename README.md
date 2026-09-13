@@ -58,6 +58,8 @@ src/
     robots.txt.ts          ← generated from site.ts, do not add a static one
     404.astro
   styles/global.css        ← design tokens (colour, type, spacing)
+scripts/
+  lib/browser.mjs          ← shared Chrome discovery + CDP client
 public/
   cv.pdf                   ← ADD THIS: your actual CV
   favicon.svg              ← edit this, then run `npm run icons`
@@ -175,6 +177,7 @@ The site currently passes, with checks enforced by `npm run verify` and
 - Every internal link resolves, with no exemptions
 - The domain is defined once; no file hardcodes it
 - Build-only tooling never reaches the browser, and every script import is declared
+- The tooling runs on Windows, macOS and Linux; CI proves it on Ubuntu
 - Visible focus ring on all 18 focusable elements
 - Skip link is focusable, becomes visible, and its target exists
 - Under `prefers-reduced-motion`, content is visible with transitions disabled
@@ -214,6 +217,14 @@ file hardcodes the domain instead.
 installs strictly from the lockfile and builds. That catches the awkward class
 of bug where the site builds on your machine only because of a file you never
 committed. It already passes, so the first deploy should be uneventful.
+
+### Continuous integration
+
+`.github/workflows/checks.yml` runs `npm test` and `npm run test:deploy` on
+every push, on Ubuntu. Running on a different OS than you develop on is
+deliberate: it stops the tooling quietly depending on one machine. Nothing to
+configure, it starts working as soon as you push to GitHub. On failure it
+uploads screenshots as an artifact so you can see what broke.
 
 ---
 

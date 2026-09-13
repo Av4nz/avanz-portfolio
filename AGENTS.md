@@ -44,6 +44,10 @@ bug, first confirm the check fails without the fix.
   name, role and host from site.ts. `verify` fails if any other file contains
   the domain, so never add a static `public/robots.txt`.
 - **English only.** The site is written in English.
+- **Tooling must be cross-platform.** Chrome discovery and the CDP client live
+  in `scripts/lib/browser.mjs`, which is the only file allowed to mention
+  platform-specific paths. Use `os.tmpdir()`, never `%TEMP%`. `verify` enforces
+  both, and CI runs the suite on Ubuntu to keep it honest.
 
 ## Where things live
 

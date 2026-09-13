@@ -1,0 +1,54 @@
+name: Checks
+
+# Runs the same suites you run locally, on Ubuntu rather than Windows. That is
+# deliberate: it proves the tooling is not quietly tied to one machine, and it
+# catches anything that only builds because of an uncommitted local file.
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # Strict install from the lockfile, exactly like a deploy host.
+      - name: Install
+        run: npm ci
+
+      # The audit needs a real browser. Ubuntu runners ship Chrome already;
+      # CHROME_PATH makes the choice explicit rather than relying on discovery.
+      - name: Locate Chrome
+        run: |
+          which google-chrome || which chromium-browser || which chromium
+          echo "CHROME_PATH=$(which google-chrome || which chromium-browser || which chromium)" >> "$GITHUB_ENV"
+
+      - name: Build, verify and audit
+        run: npm test
+
+      # Slower, so it runs after the fast suites have already passed.
+      - name: Fresh-clone deploy simulation
+        run: npm run test:deploy
+
+      # Screenshots are useful when a visual check fails in review.
+      - name: Screenshots
+        if: failure()
+        run: npm run shots || true
+
+      - name: Upload screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: .screenshots/
+          if-no-files-found: ignore

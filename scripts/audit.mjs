@@ -4,132 +4,28 @@
  *   npm run preview   (in one terminal)
  *   npm run audit     (in another)
  *
- * Uses Node 22's built-in WebSocket, so there is no Puppeteer/Playwright
- * dependency. Checks the things a static HTML scan cannot see: horizontal
- * overflow, computed contrast, tap target sizes, and heading order.
+ * Or just `npm test`, which manages the preview server for you.
+ *
+ * Checks what a static HTML scan cannot see: horizontal overflow, computed
+ * contrast, tap target sizes, heading order, focus rings and reduced-motion
+ * behaviour. Browser discovery and the CDP plumbing live in lib/browser.mjs.
  */
-import { spawn } from "node:child_process";
-import { existsSync } from "node:fs";
 import { setTimeout as sleep } from "node:timers/promises";
-
-const CHROME = [
-  "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
-  "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
-  "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
-].find((p) => existsSync(p));
-
-if (!CHROME) {
-  console.error("No Chrome or Edge found.");
-  process.exit(1);
-}
+import { launchBrowser, goto as navigate } from "./lib/browser.mjs";
 
 const BASE = process.env.BASE_URL ?? "http://localhost:4321";
-const PORT = 9333;
 
-const chrome = spawn(
-  CHROME,
-  [
-    "--headless=new",
-    "--disable-gpu",
-    `--remote-debugging-port=${PORT}`,
-    "--no-first-run",
-    "--no-default-browser-check",
-    "--user-data-dir=" + (process.env.TEMP ?? ".") + "\\jcode-audit-profile",
-    "about:blank",
-  ],
-  { stdio: "ignore" },
-);
-
-const cleanup = () => {
-  try {
-    chrome.kill();
-  } catch {}
-};
-process.on("exit", cleanup);
-
-/** Wait for the DevTools endpoint to come up. */
-async function getWsUrl() {
-  for (let i = 0; i < 60; i++) {
-    try {
-      const res = await fetch(`http://127.0.0.1:${PORT}/json/version`);
-      const j = await res.json();
-      if (j.webSocketDebuggerUrl) return j.webSocketDebuggerUrl;
-    } catch {}
-    await sleep(250);
-  }
-  throw new Error("Chrome DevTools endpoint never became ready");
-}
-
-const wsUrl = await getWsUrl();
-const ws = new WebSocket(wsUrl);
-await new Promise((r, j) => {
-  ws.addEventListener("open", r, { once: true });
-  ws.addEventListener("error", j, { once: true });
+const { chromePath, call, evaluate, close } = await launchBrowser({
+  port: 9333,
+  profile: "avanz-audit-profile",
 });
+console.log("browser:", chromePath);
 
-let msgId = 0;
-const pending = new Map();
-ws.addEventListener("message", (ev) => {
-  const msg = JSON.parse(ev.data);
-  if (msg.id && pending.has(msg.id)) {
-    const { resolve, reject } = pending.get(msg.id);
-    pending.delete(msg.id);
-    msg.error ? reject(new Error(JSON.stringify(msg.error))) : resolve(msg.result);
-  }
-});
-
-const send = (method, params = {}, sessionId) =>
-  new Promise((resolve, reject) => {
-    const id = ++msgId;
-    pending.set(id, { resolve, reject });
-    ws.send(JSON.stringify({ id, method, params, sessionId }));
-  });
-
-// One tab, reused for every viewport.
-const { targetId } = await send("Target.createTarget", { url: "about:blank" });
-const { sessionId } = await send("Target.attachToTarget", { targetId, flatten: true });
-const call = (m, p) => send(m, p, sessionId);
-
-await call("Page.enable");
-await call("Runtime.enable");
 await call("Emulation.setEmulatedMedia", {
   features: [{ name: "prefers-reduced-motion", value: "reduce" }],
 });
 
-async function goto(url, width, height) {
-  await call("Emulation.setDeviceMetricsOverride", {
-    width,
-    height,
-    deviceScaleFactor: 1,
-    mobile: width < 700,
-  });
-  await call("Page.navigate", { url });
-  // Wait for load, then let fonts settle.
-  for (let i = 0; i < 80; i++) {
-    const { result } = await call("Runtime.evaluate", {
-      expression: "document.readyState",
-      returnByValue: true,
-    });
-    if (result.value === "complete") break;
-    await sleep(100);
-  }
-  await call("Runtime.evaluate", {
-    expression: "document.fonts.ready.then(()=>true)",
-    awaitPromise: true,
-    returnByValue: true,
-  });
-  await sleep(150);
-}
-
-const evaluate = async (expression) => {
-  const { result, exceptionDetails } = await call("Runtime.evaluate", {
-    expression,
-    returnByValue: true,
-    awaitPromise: true,
-  });
-  if (exceptionDetails) throw new Error(exceptionDetails.text + " " + (result?.description ?? ""));
-  return result.value;
-};
+const goto = (url, width, height) => navigate(call, url, { width, height });
 
 let failures = 0;
 const check = (label, ok, detail = "") => {
@@ -547,5 +443,5 @@ check("choice persists to localStorage", themeResult.stored === (themeResult.aft
 check("aria-pressed reflects state", themeResult.pressed === String(themeResult.after));
 
 console.log(failures === 0 ? "\nAll runtime checks passed.\n" : `\n${failures} check(s) failed.\n`);
-cleanup();
+close();
 process.exit(failures === 0 ? 0 : 1);

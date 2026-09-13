@@ -290,6 +290,70 @@ console.log("\nBuild-only tooling stays out of the bundle");
   );
 }
 
+console.log("\nTooling is portable");
+{
+  // The scripts must not assume one machine. They originally hardcoded Windows
+  // Chrome paths and %TEMP%, which would fail on CI, macOS or a new laptop.
+  const scriptFiles = walk(join(root, "scripts"));
+  const winPaths = [];
+  const winTemp = [];
+  for (const f of scriptFiles) {
+    const rel = f.replace(root, "").replace(/\\/g, "/");
+    // Skip two files by design:
+    //   lib/browser.mjs  legitimately lists per-platform install paths and
+    //                    branches on process.platform.
+    //   this file        contains the search strings themselves, so scanning it
+    //                    would always match.
+    if (rel.endsWith("/scripts/lib/browser.mjs")) continue;
+    if (rel.endsWith("/scripts/verify-build.mjs")) continue;
+
+    const body = readFileSync(f, "utf8");
+    if (/[A-Z]:\\\\/.test(body) || body.includes("Program" + " Files")) winPaths.push(rel);
+    if (body.includes("process.env." + "TEMP")) winTemp.push(rel);
+  }
+  check("no hardcoded Windows paths outside lib/browser.mjs", winPaths.length === 0, winPaths.join(", "));
+  check("no process.env.TEMP; use os.tmpdir()", winTemp.length === 0, winTemp.join(", "));
+
+  const browserLib = join(root, "scripts/lib/browser.mjs");
+  check("shared browser helper exists", existsSync(browserLib));
+  if (existsSync(browserLib)) {
+    const lib = readFileSync(browserLib, "utf8");
+    for (const platform of ["win32", "darwin", "linux"]) {
+      check(`browser candidates for ${platform}`, new RegExp(`${platform}:\\s*\\[`).test(lib));
+    }
+    check("honours CHROME_PATH", lib.includes("CHROME_PATH"));
+    // Containers need these; without them Chrome refuses to start on CI.
+    check("passes --no-sandbox", lib.includes("--no-sandbox"));
+    check("passes --disable-dev-shm-usage", lib.includes("--disable-dev-shm-usage"));
+  }
+}
+
+console.log("\nContinuous integration");
+{
+  const wf = join(root, ".github/workflows/checks.yml");
+  check("workflow exists", existsSync(wf));
+  if (existsSync(wf)) {
+    const raw = readFileSync(wf, "utf8");
+    check("workflow has no tabs", !raw.includes("\t"));
+    check("workflow runs npm ci", raw.includes("npm ci"));
+    check("workflow runs npm test", /run:\s*npm test\b/.test(raw));
+
+    // Every script the workflow invokes must actually exist.
+    const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
+    const referenced = [...raw.matchAll(/npm run ([a-z:]+)/g)].map((m) => m[1]);
+    const missing = [...new Set(referenced)].filter((s) => !pkg.scripts[s]);
+    check("workflow only calls scripts that exist", missing.length === 0, missing.join(", "));
+
+    // CI must run the same Node major the project requires.
+    const ciNode = raw.match(/node-version:\s*(\d+)/)?.[1];
+    const engineNode = (pkg.engines?.node ?? "").match(/(\d+)/)?.[1];
+    check(
+      `CI Node (${ciNode}) satisfies engines.node (${pkg.engines?.node})`,
+      ciNode && engineNode && Number(ciNode) >= Number(engineNode),
+    );
+  }
+}
+
 console.log("\nContent placeholders");
 const placeholderCount = htmlFiles.filter((f) =>
   readFileSync(f, "utf8").includes("Placeholder content"),
