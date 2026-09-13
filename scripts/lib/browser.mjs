@@ -170,7 +170,18 @@ export async function launchBrowser({ port = 9222, profile = "cdp-profile" } = {
   return { chromePath: chrome, call, evaluate, close };
 }
 
-/** Navigate, wait for load, then wait for fonts so measurements are stable. */
+/**
+ * Navigate and wait until the page is genuinely measurable.
+ *
+ * Waiting for `readyState === "complete"` and fonts is not enough. The Astro
+ * dev server compiles CSS on demand, so the first request after a cold start
+ * can finish loading before the stylesheet is applied. Measurements taken in
+ * that window are wrong in ways that look like real bugs: no focus ring, a
+ * skip link still 1x1, reveal elements stuck at opacity 0.
+ *
+ * So this also waits for a sentinel: a known token-driven style must actually
+ * be in effect before the caller measures anything.
+ */
 export async function goto(call, url, { width = 1440, height = 900 } = {}) {
   await call("Emulation.setDeviceMetricsOverride", {
     width,
@@ -188,6 +199,22 @@ export async function goto(call, url, { width = 1440, height = 900 } = {}) {
     if (result.value === "complete") break;
     await sleep(100);
   }
+
+  // Stylesheets applied? body must have the token background, not the UA default.
+  for (let i = 0; i < 60; i++) {
+    const { result } = await call("Runtime.evaluate", {
+      expression: `(() => {
+        const bg = getComputedStyle(document.body).backgroundColor;
+        const styled = bg && bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent";
+        const sheets = document.styleSheets.length > 0;
+        return styled && sheets;
+      })()`,
+      returnByValue: true,
+    });
+    if (result.value === true) break;
+    await sleep(100);
+  }
+
   await call("Runtime.evaluate", {
     expression: "document.fonts.ready.then(() => true)",
     awaitPromise: true,

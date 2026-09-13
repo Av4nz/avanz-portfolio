@@ -306,6 +306,23 @@ console.log("\nBuild-only tooling stays out of the bundle");
     undeclared.length === 0,
     `undeclared: ${undeclared.join(", ")}`,
   );
+
+  // npm 10, which GitHub Actions ships with Node 22, rejects a lockfile that
+  // omits hoisted entries npm 11 leaves out. Catch that here rather than in CI.
+  const lock = JSON.parse(readFileSync(join(root, "package-lock.json"), "utf8"));
+  const needsHoisted = ["@emnapi/core", "@emnapi/runtime"];
+  const missingHoisted = needsHoisted.filter((n) => {
+    // Only required if something in the tree actually depends on it.
+    const wanted = Object.values(lock.packages).some((e) =>
+      ["dependencies", "optionalDependencies"].some((b) => e[b]?.[n]),
+    );
+    return wanted && !lock.packages[`node_modules/${n}`];
+  });
+  check(
+    "lockfile hoists @emnapi entries npm 10 requires",
+    missingHoisted.length === 0,
+    `${missingHoisted.join(", ")} missing; run npm run fix:lock`,
+  );
 }
 
 console.log("\nTooling is portable");

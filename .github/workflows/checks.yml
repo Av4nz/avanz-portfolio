@@ -22,6 +22,14 @@ jobs:
           node-version: 22
           cache: npm
 
+      # setup-node with Node 22 ships npm 10, which validates lockfiles more
+      # strictly than npm 11. Pinning it here means CI and local development
+      # agree, so a lockfile that installs on one installs on the other.
+      - name: Pin npm
+        run: |
+          npm install -g npm@10
+          npm -v
+
       # Strict install from the lockfile, exactly like a deploy host.
       - name: Install
         run: npm ci

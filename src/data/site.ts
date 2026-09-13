@@ -24,9 +24,10 @@ export const site = {
   availability: "Open to internships, full-time and freelance work",
 
   // --- Deployment -----------------------------------------------------------
-  // TODO: replace with your real domain once you buy one. Everything else
-  // (robots.txt, sitemap, canonical URLs, OG image) derives from this value.
-  url: "https://avanz.dev",
+  // Single source of truth for the domain. robots.txt, the sitemap, canonical
+  // URLs, OG tags, JSON-LD and the share image all derive from this value.
+  // After changing it, run `npm run og` to rebuild the share image.
+  url: "https://affanarfani.my.id",
 
   // --- Contact --------------------------------------------------------------
   email: "affanarfani4@gmail.com",

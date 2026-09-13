@@ -19,7 +19,9 @@
     "test:content": "node scripts/test-content-paths.mjs",
     "test": "node scripts/test-all.mjs",
     "test:deploy": "node scripts/test-deploy.mjs",
-    "covers": "node scripts/capture-covers.mjs"
+    "covers": "node scripts/capture-covers.mjs",
+    "fix:lock": "node scripts/fix-lockfile.mjs",
+    "verify:lock": "node scripts/verify-lockfile.mjs"
   },
   "dependencies": {
     "@astrojs/markdown-satteri": "^0.4.1",
