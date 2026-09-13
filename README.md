@@ -16,22 +16,27 @@ npm run dev          # http://localhost:4321
 
 | Script | What it does |
 | --- | --- |
+| `npm test` | **Runs everything.** Build, content tests, structure, runtime a11y. Starts and stops its own preview server. |
 | `npm run dev` | Dev server with hot reload |
 | `npm run build` | Type-check, then build to `dist/` |
 | `npm run preview` | Serve the built site locally |
 | `npm run check` | TypeScript + Astro diagnostics only |
 | `npm run verify` | Structural checks on `dist/` (links, meta tags, perf budgets) |
 | `npm run audit` | Runtime checks in headless Chrome (overflow, contrast, tap targets) |
+| `npm run test:content` | Builds a throwaway case study to exercise cover images and published state |
 | `npm run shots` | Screenshots to `.screenshots/` across viewports and themes |
 | `npm run og` | Regenerate `public/og.png` (the social share image) |
 | `npm run icons` | Regenerate `favicon.ico` and `apple-touch-icon.png` from `favicon.svg` |
 
-`verify`, `audit` and `shots` need the preview server running:
+**In normal use you only need `npm run dev` while writing and `npm test` before
+pushing.** The individual scripts are there for when something fails and you
+want to re-run just that part.
+
+`verify` and `audit` on their own expect a preview server; `npm test` handles
+that for you:
 
 ```bash
-npm run build
-npm run preview      # terminal 1
-npm run audit        # terminal 2
+npm test             # one command, no server juggling
 ```
 
 ---
@@ -171,8 +176,15 @@ The site currently passes, with checks enforced by `npm run verify` and
 - Icons are yours, not the Astro scaffold's rocket
 - English-only copy
 
-Each claim above has a corresponding automated check. If you add a feature,
-add the check that proves it, and confirm the check fails without the fix.
+Each claim above has a corresponding automated check, all of which run under
+`npm test`. If you add a feature, add the check that proves it, and confirm the
+check fails without the fix.
+
+`npm run test:content` deserves a note: it writes a temporary case study with a
+real cover image, `draft: false` and no optional URLs, builds it, asserts the
+output, then deletes itself. Those branches are never exercised by the
+placeholders, and the test caught a real bug on its first run (the tech stack
+was missing from case-study pages).
 
 ---
 
@@ -188,7 +200,7 @@ Before going live:
 1. Set `url` in `src/data/site.ts` to your real domain
 2. Update the `Sitemap:` line in `public/robots.txt`
 3. Run `npm run og` so the share image matches
-4. Run `npm run build && npm run preview && npm run audit` one last time
+4. Run `npm test` one last time
 
 ---
 

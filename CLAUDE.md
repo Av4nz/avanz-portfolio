@@ -5,18 +5,22 @@ static output, zero client JavaScript by design.
 
 ## Before you claim something works
 
-This project has three layers of checks. Run them; do not assume.
+This project has real checks. Run them; do not assume.
 
 ```bash
-npm run build      # astro check + build, fails on type errors
-npm run preview    # required by the two below
-npm run verify     # structural checks against dist/
-npm run audit      # runtime checks in headless Chrome (CDP)
+npm test           # everything: build, content paths, structure, runtime a11y
 ```
+
+`npm test` starts and stops its own preview server. The individual suites are
+`npm run build`, `npm run test:content`, `npm run verify` and `npm run audit`;
+the last two need a server already running.
 
 `npm run audit` covers what static analysis cannot: horizontal overflow at four
 widths, per-node WCAG AA contrast in both themes, 24px tap targets, heading
 order, focus rings, reduced-motion behaviour and the theme toggle.
+
+`npm run test:content` builds a throwaway case study with a cover image and
+`draft: false`, because no committed placeholder exercises those branches.
 
 If you add a user-visible guarantee, add the check that proves it. If you fix a
 bug, first confirm the check fails without the fix.

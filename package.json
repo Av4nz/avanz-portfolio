@@ -16,7 +16,8 @@
     "shots": "node scripts/screenshots.mjs",
     "audit": "node scripts/audit.mjs",
     "icons": "node scripts/generate-icons.mjs",
-    "test:content": "node scripts/test-content-paths.mjs"
+    "test:content": "node scripts/test-content-paths.mjs",
+    "test": "node scripts/test-all.mjs"
   },
   "dependencies": {
     "@astrojs/markdown-satteri": "^0.4.1",
