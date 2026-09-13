@@ -7,7 +7,7 @@ draft: false
 period: "2025"
 role: "Full-stack Web Developer"
 duration: "2 weeks (May 2025)"
-team: "Five people. Two built the scraper, one built the summarisation model, two researched. I built the web application and the API that tied their work together."
+team: "Five people. Teammates wrote the scraper and the summarisation model, two researched. I built the web application and the API, and integrated their work."
 stack: ["FastAPI", "Python", "JavaScript", "Vite", "REST APIs"]
 repoUrl: "https://github.com/Av4nz/restaurant-review-summarizer-backend"
 outcomes:
@@ -27,10 +27,10 @@ A restaurant with a few hundred Google Maps reviews has a real problem: the
 information is there, but nobody reads it. An owner sees a star rating and the
 five most recent comments, and everything else is buried.
 
-This was a five-person college project. Two teammates built the scraper, one
-built the summarisation model, and two handled research. **I built the web
-application and the API layer** that turned their separate pieces into
-something a person could actually use.
+This was a five-person college project. Teammates wrote the scraper and the
+summarisation model, and two handled research. **I built the web application
+and the API layer**, and did the integration work that turned their separate
+pieces into something a person could actually use.
 
 ## The problem
 
@@ -55,12 +55,15 @@ What I owned:
 
 - The **FastAPI service** exposing scraping and summarisation as HTTP endpoints
 - The **front end** (JavaScript, Vite) for submitting a restaurant and viewing results
-- The **project structure** that let three people work without colliding
+- The **project structure** that let several people work without colliding
+- **Debugging and adapting the scraper** so its output was usable by the API
 - Getting the model artifact out of the repository once it started bloating clones
 
-I want to be precise, since it is easy to overclaim on group work. The sentiment
-model is not mine. I made 27 of the 42 commits on the backend, and those are
-overwhelmingly API and integration work, not modelling.
+I want to be precise, since it is easy to overclaim on group work. The
+summarisation model is not mine, and the scraper was written by teammates; my
+commits against it are fixes and integration, not the original implementation.
+I made 30 of the 42 commits on the backend, and they are overwhelmingly API and
+integration work.
 
 ## Technical decisions
 
